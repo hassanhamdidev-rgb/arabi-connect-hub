@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpeg";
 
@@ -45,6 +45,12 @@ const Navbar = () => {
 
           {/* CTA + Auth */}
           <div className="hidden lg:flex items-center gap-3">
+            <Link to="/dashboard">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                لوحة التحكم
+              </Button>
+            </Link>
             <Link to="/auth">
               <Button variant="outline" size="sm">تسجيل الدخول</Button>
             </Link>
