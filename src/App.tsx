@@ -10,6 +10,13 @@ import BlogPage from "./pages/BlogPage";
 import ContactPage from "./pages/ContactPage";
 import AuthPage from "./pages/AuthPage";
 import ServicesPage from "./pages/ServicesPage";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import ArticlesPage from "./pages/dashboard/ArticlesPage";
+import ServicesAdminPage from "./pages/dashboard/ServicesAdminPage";
+import FAQAdminPage from "./pages/dashboard/FAQAdminPage";
+import UsersPage from "./pages/dashboard/UsersPage";
+import MessagesPage from "./pages/dashboard/MessagesPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +35,13 @@ const App = () => (
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/dashboard" element={<DashboardHome />} />
+          <Route path="/dashboard/articles" element={<ArticlesPage />} />
+          <Route path="/dashboard/services" element={<ServicesAdminPage />} />
+          <Route path="/dashboard/faq" element={<FAQAdminPage />} />
+          <Route path="/dashboard/users" element={<UsersPage />} />
+          <Route path="/dashboard/messages" element={<MessagesPage />} />
+          <Route path="/dashboard/profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
