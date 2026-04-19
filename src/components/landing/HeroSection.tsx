@@ -4,6 +4,7 @@ import { Phone, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 import heroBg from "@/assets/hero-bg.jpg";
 import logoName from "@/assets/logo-name.png";
+import logoMark from "@/assets/logo-mark.png";
 
 const HeroSection = () => {
   return (
@@ -15,7 +16,8 @@ const HeroSection = () => {
       </div>
 
       <div className="section-container relative z-10 py-20">
-        <div className="max-w-2xl">
+        <div className="grid lg:grid-cols-[1fr_auto] gap-12 items-center">
+          <div className="max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
