@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 import heroBg from "@/assets/hero-bg.jpg";
+import logoName from "@/assets/logo-name.png";
 
 const HeroSection = () => {
   return (
@@ -25,9 +26,15 @@ const HeroSection = () => {
               <span className="text-gold font-medium text-sm">للمحاماة والاستشارات القانونية</span>
             </div>
 
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-6">
-              خالد عويد المجنوني
-              <span className="block text-gold text-2xl sm:text-3xl lg:text-4xl mt-2 font-semibold">
+            <h1 className="mb-6">
+              <img
+                src={logoName}
+                alt="خالد عويد المجنوني للمحاماة والاستشارات القانونية"
+                className="w-full max-w-md lg:max-w-lg h-auto brightness-0 invert"
+                width={600}
+                height={240}
+              />
+              <span className="block text-gold text-2xl sm:text-3xl lg:text-4xl mt-4 font-heading font-semibold">
                 حلول قانونية بثقة واحتراف
               </span>
             </h1>
