@@ -4,12 +4,19 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User, ArrowLeft } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
 
   return (
     <Layout>
+      <SEO
+        title={isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"}
+        description="بوابة الدخول إلى حساب لوحة تحكم مكتب خالد المجنوني للمحاماة."
+        path="/auth"
+        noindex
+      />
       <section className="py-20 bg-muted min-h-[80vh] flex items-center">
         <div className="section-container">
           <div className="max-w-md mx-auto">
