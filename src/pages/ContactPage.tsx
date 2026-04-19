@@ -5,11 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Mail, Send, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
+import { breadcrumbsLd, organizationLd } from "@/lib/seo";
 
 const ContactPage = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<string>("");
+  const seoNode = (
+    <SEO
+      title="تواصل معنا | حجز استشارة قانونية بالرياض"
+      description="تواصل مع مكتب خالد عويد المجنوني للمحاماة في الرياض عبر الهاتف، البريد الإلكتروني أو زيارتنا. متاحون للاستشارات القانونية."
+      path="/contact"
+      keywords={["تواصل محامي", "حجز استشارة", "مكتب محاماة الرياض"]}
+      jsonLd={[
+        organizationLd,
+        breadcrumbsLd([
+          { name: "الرئيسية", path: "/" },
+          { name: "تواصل معنا", path: "/contact" },
+        ]),
+      ]}
+    />
+  );
 
   const detectLocation = () => {
     if (navigator.geolocation) {
@@ -40,6 +57,7 @@ const ContactPage = () => {
 
   return (
     <Layout>
+      {seoNode}
       <section className="py-20 gradient-teal">
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">تواصل معنا</h1>

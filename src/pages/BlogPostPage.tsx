@@ -10,6 +10,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import SEO from "@/components/SEO";
+import { articleLd, breadcrumbsLd } from "@/lib/seo";
 
 const posts = [
   { id: "1", title: "حقوقك القانونية عند الفصل التعسفي", category: "قضايا العمل", date: "15 أبريل 2026", author: "خالد المجنوني", excerpt: "تعرف على حقوقك القانونية في حالة الفصل التعسفي." },
@@ -35,6 +37,27 @@ const BlogPostPage = () => {
 
   return (
     <Layout>
+      <SEO
+        title={`${post.title} | المدونة القانونية`}
+        description={post.excerpt}
+        path={`/blog/${post.id}`}
+        type="article"
+        author={post.author}
+        keywords={[post.category, "مقال قانوني", "محامي السعودية"]}
+        jsonLd={[
+          articleLd({
+            title: post.title,
+            description: post.excerpt,
+            path: `/blog/${post.id}`,
+            author: post.author,
+          }),
+          breadcrumbsLd([
+            { name: "الرئيسية", path: "/" },
+            { name: "المدونة", path: "/blog" },
+            { name: post.title, path: `/blog/${post.id}` },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <section className="py-16 gradient-teal">
         <div className="section-container">

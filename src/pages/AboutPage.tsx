@@ -1,10 +1,25 @@
 import Layout from "@/components/Layout";
 import { CheckCircle, Target, Eye, Award } from "lucide-react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
+import { breadcrumbsLd, organizationLd } from "@/lib/seo";
 
 const AboutPage = () => {
   return (
     <Layout>
+      <SEO
+        title="من نحن | مكتب خالد عويد المجنوني للمحاماة"
+        description="تعرف على مكتب خالد عويد المجنوني: خبرة قانونية موثوقة في الرياض، رؤيتنا، قيمنا وفريق المحامين المتخصص في القانون السعودي."
+        path="/about"
+        keywords={["عن المكتب", "محامي معتمد الرياض", "خبرة قانونية"]}
+        jsonLd={[
+          organizationLd,
+          breadcrumbsLd([
+            { name: "الرئيسية", path: "/" },
+            { name: "من نحن", path: "/about" },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <section className="py-20 gradient-teal">
         <div className="section-container text-center">
