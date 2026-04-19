@@ -1,6 +1,6 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Calendar, User, ArrowRight, Share2, Facebook, Twitter, MessageCircle } from "lucide-react";
+import { Calendar, User, ArrowRight, Share2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,8 +110,8 @@ const BlogPostPage = () => {
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Share2 className="h-4 w-4" /> شارك المقال:
             </span>
-            <Button variant="outline" size="sm" className="gap-2"><Facebook className="h-4 w-4" /> فيسبوك</Button>
-            <Button variant="outline" size="sm" className="gap-2"><Twitter className="h-4 w-4" /> تويتر</Button>
+            <Button variant="outline" size="sm">فيسبوك</Button>
+            <Button variant="outline" size="sm">تويتر</Button>
             <Button variant="outline" size="sm" className="gap-2"><MessageCircle className="h-4 w-4" /> واتساب</Button>
           </div>
         </div>
