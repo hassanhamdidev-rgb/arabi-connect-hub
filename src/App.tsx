@@ -10,7 +10,10 @@ import BlogPage from "./pages/BlogPage";
 import ContactPage from "./pages/ContactPage";
 import AuthPage from "./pages/AuthPage";
 import ServicesPage from "./pages/ServicesPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import DashboardHome from "./pages/dashboard/DashboardHome";
+import TermsPage from "./pages/dashboard/TermsPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import ArticlesPage from "./pages/dashboard/ArticlesPage";
 import ServicesAdminPage from "./pages/dashboard/ServicesAdminPage";
 import FAQAdminPage from "./pages/dashboard/FAQAdminPage";
@@ -32,6 +35,7 @@ const App = () => (
           <Route path="/about" element={<AboutPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:id" element={<BlogPostPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/services" element={<ServicesPage />} />
@@ -41,6 +45,8 @@ const App = () => (
           <Route path="/dashboard/faq" element={<FAQAdminPage />} />
           <Route path="/dashboard/users" element={<UsersPage />} />
           <Route path="/dashboard/messages" element={<MessagesPage />} />
+          <Route path="/dashboard/terms" element={<TermsPage />} />
+          <Route path="/dashboard/settings" element={<SettingsPage />} />
           <Route path="/dashboard/profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

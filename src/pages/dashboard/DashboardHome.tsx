@@ -2,6 +2,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Mail, Eye, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { mockArticles, mockMessages, mockUsers } from "@/lib/mockData";
+import StatsCharts from "@/components/dashboard/StatsCharts";
 
 const stats = [
   { label: "إجمالي المقالات", value: mockArticles.length, change: "+12%", trend: "up", icon: FileText, color: "text-primary bg-primary/10" },
@@ -36,6 +37,9 @@ const DashboardHome = () => {
           </Card>
         ))}
       </div>
+
+      {/* Charts */}
+      <StatsCharts />
 
       {/* Two-col content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
