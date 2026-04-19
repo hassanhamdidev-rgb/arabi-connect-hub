@@ -1,5 +1,7 @@
 import { SITE_URL, SITE_NAME } from "@/components/SEO";
 
+export { SITE_URL, SITE_NAME };
+
 const PHONE = "+966500000000";
 const EMAIL = "info@khalid-almajnouni.com";
 const STREET = "طريق الملك فهد";
