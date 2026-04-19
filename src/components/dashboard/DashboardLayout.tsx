@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import DashboardSidebar from "./DashboardSidebar";
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import NotificationsButton from "./NotificationsButton";
 
 interface Props {
   children: ReactNode;
@@ -31,10 +31,7 @@ const DashboardLayout = ({ children, title, description, actions }: Props) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 left-1 h-2 w-2 rounded-full bg-accent" />
-              </Button>
+              <NotificationsButton />
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">خم</AvatarFallback>
               </Avatar>
