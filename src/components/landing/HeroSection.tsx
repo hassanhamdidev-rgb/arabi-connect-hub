@@ -78,6 +78,26 @@ const HeroSection = () => {
               </div>
             ))}
           </motion.div>
+          </div>
+
+          {/* Logo Mark */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+            className="hidden lg:block relative"
+          >
+            <div className="absolute inset-0 bg-gold/20 blur-3xl rounded-full" />
+            <div className="relative bg-primary-foreground/5 backdrop-blur-sm border border-gold/30 rounded-3xl p-10 shadow-2xl">
+              <motion.img
+                src={logoMark}
+                alt="شعار خالد عويد المجنوني"
+                className="w-72 h-72 object-contain drop-shadow-2xl"
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
