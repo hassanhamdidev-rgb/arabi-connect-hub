@@ -91,7 +91,7 @@ export async function login(
   email: string,
   password: string
 ): Promise<AuthenticationData> {
-  return directus.login(email, password);
+  return directus.login({ email, password });
 }
 
 export async function logout(): Promise<void> {
