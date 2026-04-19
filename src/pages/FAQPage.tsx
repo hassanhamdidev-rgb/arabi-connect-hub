@@ -1,5 +1,7 @@
 import Layout from "@/components/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import SEO from "@/components/SEO";
+import { breadcrumbsLd, faqLd } from "@/lib/seo";
 
 const faqs = [
   { q: "ما هي أوقات العمل في المكتب؟", a: "نعمل من الأحد إلى الخميس من الساعة 8 صباحاً حتى 5 مساءً. يمكنكم حجز موعد مسبق خارج أوقات العمل." },
@@ -15,6 +17,19 @@ const faqs = [
 const FAQPage = () => {
   return (
     <Layout>
+      <SEO
+        title="الأسئلة الشائعة | استشارات قانونية بالرياض"
+        description="إجابات لأكثر الأسئلة شيوعاً عن الاستشارات القانونية، الأتعاب، أوقات العمل، ونطاق خدمات مكتب خالد المجنوني للمحاماة."
+        path="/faq"
+        keywords={["أسئلة قانونية", "استشارة قانونية", "أتعاب المحاماة"]}
+        jsonLd={[
+          faqLd(faqs.map((f) => ({ question: f.q, answer: f.a }))),
+          breadcrumbsLd([
+            { name: "الرئيسية", path: "/" },
+            { name: "الأسئلة الشائعة", path: "/faq" },
+          ]),
+        ]}
+      />
       <section className="py-20 gradient-teal">
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">الأسئلة الشائعة</h1>

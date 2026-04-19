@@ -2,6 +2,23 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Calendar, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
+import { breadcrumbsLd, SITE_URL } from "@/lib/seo";
+
+const blogListLd = (posts: { id: string; title: string; category: string; excerpt: string }[]) => ({
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  name: "المدونة القانونية",
+  url: `${SITE_URL}/blog`,
+  inLanguage: "ar-SA",
+  blogPost: posts.map((p) => ({
+    "@type": "BlogPosting",
+    headline: p.title,
+    url: `${SITE_URL}/blog/${p.id}`,
+    articleSection: p.category,
+    description: p.excerpt,
+  })),
+});
 
 const posts = [
   { id: "1", title: "حقوقك القانونية عند الفصل التعسفي", category: "قضايا العمل", date: "15 أبريل 2026", excerpt: "تعرف على حقوقك القانونية في حالة الفصل التعسفي وكيفية المطالبة بالتعويض المناسب وفق نظام العمل السعودي." },
@@ -15,6 +32,19 @@ const posts = [
 const BlogPage = () => {
   return (
     <Layout>
+      <SEO
+        title="المدونة القانونية | مقالات ونصائح من محامين"
+        description="مقالات قانونية متخصصة في قانون العمل، التجاري، الأحوال الشخصية والتحكيم بالسعودية. تحديثات وتفسيرات من خبراء المكتب."
+        path="/blog"
+        keywords={["مدونة قانونية", "مقالات قانون سعودي", "نصائح محامي"]}
+        jsonLd={[
+          blogListLd(posts),
+          breadcrumbsLd([
+            { name: "الرئيسية", path: "/" },
+            { name: "المدونة", path: "/blog" },
+          ]),
+        ]}
+      />
       <section className="py-20 gradient-teal">
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">المدونة القانونية</h1>
