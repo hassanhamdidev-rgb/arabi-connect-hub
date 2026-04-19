@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo-mark.png";
 
 const navLinks = [
   { label: "الرئيسية", path: "/" },
@@ -23,7 +23,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="خالد عويد المجنوني" className="h-14 w-auto rounded" />
+            <img src={logo} alt="خالد عويد المجنوني" className="h-14 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}
