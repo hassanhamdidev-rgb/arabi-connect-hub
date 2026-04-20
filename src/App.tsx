@@ -21,8 +21,13 @@ import UsersPage from "./pages/dashboard/UsersPage";
 import MessagesPage from "./pages/dashboard/MessagesPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
+
+const Protected = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>{children}</ProtectedRoute>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,15 +44,15 @@ const App = () => (
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/services" element={<ServicesPage />} />
-          <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/articles" element={<ArticlesPage />} />
-          <Route path="/dashboard/services" element={<ServicesAdminPage />} />
-          <Route path="/dashboard/faq" element={<FAQAdminPage />} />
-          <Route path="/dashboard/users" element={<UsersPage />} />
-          <Route path="/dashboard/messages" element={<MessagesPage />} />
-          <Route path="/dashboard/terms" element={<TermsPage />} />
-          <Route path="/dashboard/settings" element={<SettingsPage />} />
-          <Route path="/dashboard/profile" element={<ProfilePage />} />
+          <Route path="/dashboard" element={<Protected><DashboardHome /></Protected>} />
+          <Route path="/dashboard/articles" element={<Protected><ArticlesPage /></Protected>} />
+          <Route path="/dashboard/services" element={<Protected><ServicesAdminPage /></Protected>} />
+          <Route path="/dashboard/faq" element={<Protected><FAQAdminPage /></Protected>} />
+          <Route path="/dashboard/users" element={<Protected><UsersPage /></Protected>} />
+          <Route path="/dashboard/messages" element={<Protected><MessagesPage /></Protected>} />
+          <Route path="/dashboard/terms" element={<Protected><TermsPage /></Protected>} />
+          <Route path="/dashboard/settings" element={<Protected><SettingsPage /></Protected>} />
+          <Route path="/dashboard/profile" element={<Protected><ProfilePage /></Protected>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
