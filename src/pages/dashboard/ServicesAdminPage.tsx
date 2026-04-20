@@ -8,84 +8,120 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Briefcase } from "lucide-react";
-import { mockServices, type Service } from "@/lib/mockData";
+import { Plus, Edit, Trash2, Briefcase, Loader2 } from "lucide-react";
+import { useServices, useSaveService, useDeleteService } from "@/hooks/useDirectus";
+import type { Service } from "@/lib/directus";
 import { toast } from "sonner";
 
-const ServicesPage = () => {
-  const [services, setServices] = useState<Service[]>(mockServices);
+const ServicesAdminPage = () => {
+  const { data: services = [], isLoading } = useServices();
+  const saveMut = useSaveService();
+  const delMut = useDeleteService();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
 
-  const toggle = (id: string) => {
-    setServices(services.map(s => s.id === id ? { ...s, active: !s.active } : s));
+  const toggle = async (s: Service) => {
+    try {
+      await saveMut.mutateAsync({
+        id: s.id,
+        status: s.status === "active" ? "inactive" : "active",
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر التحديث");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setServices(services.filter(s => s.id !== id));
-    toast.success("تم حذف الخدمة");
+  const handleDelete = async (id: number) => {
+    try {
+      await delMut.mutateAsync(id);
+      toast.success("تم حذف الخدمة");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحذف");
+    }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const data = {
-      title: String(fd.get("title")),
+    const name = String(fd.get("title")).trim();
+    const data: Partial<Service> = {
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-").slice(0, 80),
       description: String(fd.get("description")),
-      icon: "Briefcase",
+      icon: String(fd.get("icon") ?? "Briefcase"),
+      status: "active",
+      type: String(fd.get("type") ?? "general"),
+      price: String(fd.get("price") ?? ""),
+      duration: String(fd.get("duration") ?? ""),
+      meta_title: name,
+      meta_description: String(fd.get("description")).slice(0, 160),
+      tl_dr: String(fd.get("description")).slice(0, 200),
+      featured: "false",
+      image: editing?.image ?? "",
     };
-    if (editing) {
-      setServices(services.map(s => s.id === editing.id ? { ...s, ...data } : s));
-      toast.success("تم التحديث");
-    } else {
-      setServices([...services, { id: String(Date.now()), ...data, active: true }]);
-      toast.success("تمت الإضافة");
+    try {
+      await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
+      toast.success(editing ? "تم التحديث" : "تمت الإضافة");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
-    setOpen(false);
   };
 
   return (
     <DashboardLayout
       title="إدارة الخدمات"
-      description="الخدمات المعروضة في الموقع"
+      description={`${services.length} خدمة`}
       actions={
         <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
           <Plus className="h-4 w-4" /> خدمة جديدة
         </Button>
       }
     >
+      {isLoading && (
+        <div className="flex justify-center py-10">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {services.map((s) => (
-          <Card key={s.id} className={!s.active ? "opacity-60" : ""}>
-            <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
-              <div className="h-11 w-11 rounded-lg gradient-teal flex items-center justify-center">
-                <Briefcase className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <Badge variant={s.active ? "default" : "outline"}>
-                {s.active ? "مفعّلة" : "موقوفة"}
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              <CardTitle className="text-lg mb-2">{s.title}</CardTitle>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{s.description}</p>
-              <div className="flex items-center justify-between pt-3 border-t border-border">
-                <div className="flex items-center gap-2">
-                  <Switch checked={s.active} onCheckedChange={() => toggle(s.id)} />
-                  <Label className="text-xs text-muted-foreground">عرض في الموقع</Label>
+        {services.map((s) => {
+          const active = s.status === "active";
+          return (
+            <Card key={s.id} className={!active ? "opacity-60" : ""}>
+              <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
+                <div className="h-11 w-11 rounded-lg gradient-teal flex items-center justify-center">
+                  <Briefcase className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => handleDelete(s.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <Badge variant={active ? "default" : "outline"}>
+                  {active ? "مفعّلة" : "موقوفة"}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-lg mb-2">{s.name}</CardTitle>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{s.description}</p>
+                <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <div className="flex items-center gap-2">
+                    <Switch checked={active} onCheckedChange={() => toggle(s)} />
+                    <Label className="text-xs text-muted-foreground">عرض في الموقع</Label>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDelete(s.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -96,15 +132,38 @@ const ServicesPage = () => {
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">عنوان الخدمة</Label>
-              <Input id="title" name="title" defaultValue={editing?.title} required />
+              <Input id="title" name="title" defaultValue={editing?.name} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">الوصف</Label>
               <Textarea id="description" name="description" defaultValue={editing?.description} rows={4} required />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="icon">الأيقونة</Label>
+                <Input id="icon" name="icon" defaultValue={editing?.icon ?? "Briefcase"} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">النوع</Label>
+                <Input id="type" name="type" defaultValue={editing?.type ?? "general"} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="price">السعر</Label>
+                <Input id="price" name="price" defaultValue={editing?.price} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="duration">المدة</Label>
+                <Input id="duration" name="duration" defaultValue={editing?.duration} />
+              </div>
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit">حفظ</Button>
+              <Button type="submit" disabled={saveMut.isPending}>
+                {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                حفظ
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -113,4 +172,4 @@ const ServicesPage = () => {
   );
 };
 
-export default ServicesPage;
+export default ServicesAdminPage;
