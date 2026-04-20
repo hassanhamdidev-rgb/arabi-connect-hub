@@ -1,12 +1,10 @@
-import { useState } from "react";
 import { Bell, MessageSquare, FileText, UserPlus, Settings as SettingsIcon, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
-import { initialNotifications, AppNotification } from "@/lib/notifications";
+import { useNotifications, useMarkNotification } from "@/hooks/useDirectus";
 import { cn } from "@/lib/utils";
 
-const iconMap = {
+const iconMap: Record<string, typeof MessageSquare> = {
   message: MessageSquare,
   article: FileText,
   user: UserPlus,
@@ -14,14 +12,15 @@ const iconMap = {
 };
 
 const NotificationsButton = () => {
-  const [items, setItems] = useState<AppNotification[]>(initialNotifications);
-  const [soundOn, setSoundOn] = useState(true);
-  const top5 = items.slice(0, 5);
-  const unread = items.filter((n) => !n.read).length;
+  const { data: items = [], isLoading } = useNotifications();
+  const markMut = useMarkNotification();
 
-  const markOne = (id: string) =>
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  const markAll = () => setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+  const top5 = items.slice(0, 5);
+  const unread = items.filter((n) => !n.is_read).length;
+
+  const markAll = () => {
+    items.filter((n) => !n.is_read).forEach((n) => markMut.mutate(n.id));
+  };
 
   return (
     <Popover>
@@ -41,21 +40,27 @@ const NotificationsButton = () => {
             <div className="font-heading font-bold text-sm">الإشعارات</div>
             <div className="text-xs text-muted-foreground">{unread} غير مقروءة</div>
           </div>
-          <Button variant="ghost" size="sm" onClick={markAll} className="h-8 text-xs gap-1">
+          <Button variant="ghost" size="sm" onClick={markAll} className="h-8 text-xs gap-1" disabled={unread === 0}>
             <CheckCheck className="h-3.5 w-3.5" /> قراءة الكل
           </Button>
         </div>
 
         <div className="max-h-80 overflow-y-auto">
+          {isLoading && (
+            <div className="p-6 text-center text-sm text-muted-foreground">جاري التحميل...</div>
+          )}
+          {!isLoading && top5.length === 0 && (
+            <div className="p-6 text-center text-sm text-muted-foreground">لا توجد إشعارات</div>
+          )}
           {top5.map((n) => {
-            const Icon = iconMap[n.type];
+            const Icon = iconMap[n.icon ?? "system"] ?? SettingsIcon;
             return (
               <button
                 key={n.id}
-                onClick={() => markOne(n.id)}
+                onClick={() => !n.is_read && markMut.mutate(n.id)}
                 className={cn(
                   "w-full text-right flex items-start gap-3 p-3 border-b border-border/60 hover:bg-muted/60 transition-colors",
-                  !n.read && "bg-accent/5"
+                  !n.is_read && "bg-accent/5"
                 )}
               >
                 <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -63,23 +68,17 @@ const NotificationsButton = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate">{n.title}</span>
-                    {!n.read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
+                    <span className="font-medium text-sm truncate">{n.category}</span>
+                    {!n.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{n.body}</div>
-                  <div className="text-[10px] text-muted-foreground/70 mt-0.5">{n.date}</div>
+                  <div className="text-xs text-muted-foreground truncate">{n.description}</div>
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                    {n.date_created ? new Date(n.date_created).toLocaleString("ar-SA") : ""}
+                  </div>
                 </div>
               </button>
             );
           })}
-        </div>
-
-        <div className="flex items-center justify-between p-3 border-t border-border bg-muted/30">
-          <label className="flex items-center gap-2 text-xs cursor-pointer">
-            <Switch checked={soundOn} onCheckedChange={setSoundOn} />
-            <span>صوت الإشعارات</span>
-          </label>
-          <span className="text-xs text-muted-foreground">{soundOn ? "مفعّل" : "مكتوم"}</span>
         </div>
       </PopoverContent>
     </Popover>
