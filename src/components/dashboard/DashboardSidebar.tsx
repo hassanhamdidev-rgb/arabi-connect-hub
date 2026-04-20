@@ -1,4 +1,7 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { logout } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import {
   LayoutDashboard,
   FileText,
@@ -46,6 +49,18 @@ const DashboardSidebar = () => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success("تم تسجيل الخروج");
+    navigate("/auth", { replace: true });
+  };
+
+  const displayName = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(" ") || user.email
+    : "خالد المجنوني";
 
   const getCls = (active: boolean) =>
     active
@@ -60,7 +75,7 @@ const DashboardSidebar = () => {
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-heading font-bold text-sm truncate">لوحة التحكم</span>
-              <span className="text-xs text-muted-foreground truncate">خالد المجنوني</span>
+              <span className="text-xs text-muted-foreground truncate">{displayName}</span>
             </div>
           )}
         </div>
@@ -124,7 +139,7 @@ const DashboardSidebar = () => {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-destructive hover:bg-destructive/10">
+            <SidebarMenuButton onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
               <LogOut className="h-4 w-4" />
               {!collapsed && <span>تسجيل الخروج</span>}
             </SidebarMenuButton>
