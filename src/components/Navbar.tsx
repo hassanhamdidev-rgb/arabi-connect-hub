@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-mark.png";
 
 const navLinks = [
@@ -16,6 +17,7 @@ const navLinks = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   return (
     <nav className="fixed top-0 right-0 left-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
@@ -45,15 +47,18 @@ const Navbar = () => {
 
           {/* CTA + Auth */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                لوحة التحكم
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button variant="outline" size="sm">تسجيل الدخول</Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  لوحة التحكم
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline" size="sm">تسجيل الدخول</Button>
+              </Link>
+            )}
             <Link to="/contact">
               <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
                 <Phone className="w-4 h-4" />
@@ -90,9 +95,18 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-2 mt-3 px-4">
-                <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" className="w-full">تسجيل الدخول</Button>
-                </Link>
+                {isAuthenticated ? (
+                  <Link to="/dashboard" className="flex-1" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <LayoutDashboard className="w-4 h-4" />
+                      لوحة التحكم
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full">تسجيل الدخول</Button>
+                  </Link>
+                )}
                 <Link to="/contact" className="flex-1" onClick={() => setIsOpen(false)}>
                   <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">احجز استشارة</Button>
                 </Link>
