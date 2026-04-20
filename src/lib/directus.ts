@@ -1,115 +1,231 @@
 import {
   createDirectus,
   rest,
-  authentication,
+  staticToken,
   readItems,
   readItem,
+  readSingleton,
   createItem,
   updateItem,
+  updateSingleton,
   deleteItem,
-  readMe,
-  type AuthenticationData,
 } from "@directus/sdk";
 
-/**
- * Directus schema
- * Extend these collection types as your Directus collections grow.
- * Keep field names in sync with your Directus admin panel.
- */
-export interface Article {
+/* -------------------------------------------------------------------------- */
+/* Schema — mirrors Directus collections documentation                         */
+/* -------------------------------------------------------------------------- */
+
+export type PublishStatus = "published" | "draft";
+export type ActivityStatus = "active" | "inactive";
+export type MessageStatus = "replied" | "pending" | "new";
+export type ReportStatus = "draft" | "reviewed" | "resolved";
+
+export interface Blog {
+  id: number;
+  status: PublishStatus;
+  sort?: number | null;
+  user_created: string;
+  date_created: string;
+  user_updated?: string | null;
+  date_updated?: string | null;
+  name: string;
+  slug: string;
+  description: string;
+  content: string;
+  author: string;
+  category: string;
+  meta_description?: string | null;
+  meta_title?: string | null;
+  views?: number | null;
+  excerpt?: string | null;
+  reading_time?: number | null;
+  featured?: boolean | null;
+  tl_dr?: string | null;
+  faqs?: unknown;
+  tag?: string | null;
+  files?: (string | number)[] | null;
+}
+
+export interface Category {
+  id: number;
+  status: PublishStatus;
+  sort?: number | null;
+  name: string;
+  type: string;
+  description: string;
+  tl_dr: string;
+  faqs?: unknown;
+  tag?: string | null;
+}
+
+export interface ContactMessage {
   id: string;
-  title: string;
-  slug?: string;
-  content?: string;
-  category?: string;
-  status: "draft" | "published" | "archived";
-  views?: number;
+  status: MessageStatus;
+  sort?: number | null;
   date_created?: string;
-  date_updated?: string;
+  category: string;
+  name: string;
+  description: string;
+  email: string;
+  phone: string;
+  is_read: boolean;
+  is_replied: boolean;
+  reviewer?: string | null;
+  related_message?: string | null;
+  owner: "client" | "admin";
+  ip_address_clients: string;
+  files?: (string | number)[] | null;
+}
+
+export interface Fqa {
+  id: number;
+  status: ActivityStatus;
+  sort?: number | null;
+  question: string;
+  answer: string;
+  icon: string;
+  image?: string | null;
+  category: string;
+  creator: string;
+  meta_title: string;
+  meta_description: string;
+  tl_dr: string;
+  faqs?: unknown;
+  tag?: string | null;
+}
+
+export interface GlobalSeo {
+  id: number;
+  status: PublishStatus;
+  site_name: string;
+  site_url: string;
+  default_meta_title: string;
+  default_meta_description: string;
+  organization_logo: string;
+  social_links: { link: string }[];
+  contact_email: string;
+  founding_date: string;
+  phone: string;
+}
+
+export interface Notification {
+  id: string;
+  status: PublishStatus;
+  sort?: number | null;
+  date_created?: string;
+  category: string;
+  description: string;
+  url: string;
+  is_read: boolean;
+  icon: string;
+  read_at?: string | null;
+}
+
+export interface Report {
+  id: number;
+  status: ReportStatus;
+  sort?: number | null;
+  date_created?: string;
+  name: string;
+  email: string;
+  phone: string;
+  category: string;
+  description: string;
+  reviewer?: string | null;
+  priority?: "low" | "medium" | "high" | "urgent" | null;
+  files?: (string | number)[] | null;
 }
 
 export interface Service {
-  id: string;
-  title: string;
-  description: string;
-  icon?: string;
-  active: boolean;
-  sort?: number;
-}
-
-export interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
-  sort?: number;
-}
-
-export interface Message {
-  id: string;
+  id: number;
+  status: ActivityStatus;
+  sort?: number | null;
   name: string;
-  email: string;
-  subject: string;
-  body: string;
-  read: boolean;
-  date_created?: string;
+  slug: string;
+  description: string;
+  icon: string;
+  image: string;
+  meta_title: string;
+  meta_description: string;
+  type: string;
+  price: string;
+  duration: string;
+  featured: string;
+  tl_dr: string;
+  faqs?: unknown;
+  tag?: string | null;
+}
+
+export interface TermsAndPolicies {
+  id: number;
+  status: PublishStatus;
+  terms: string;
+  policy: string;
 }
 
 export interface DirectusSchema {
-  articles: Article[];
+  blogs: Blog[];
+  categories: Category[];
+  contact_messages: ContactMessage[];
+  fqa: Fqa[];
+  global_seo: GlobalSeo;
+  notifications: Notification[];
+  reports: Report[];
   services: Service[];
-  faq: FAQItem[];
-  messages: Message[];
+  terms_and_policies: TermsAndPolicies;
 }
 
-/**
- * Directus URL is read from VITE_DIRECTUS_URL.
- * Falls back to localhost for local development.
- */
-const DIRECTUS_URL =
+/* -------------------------------------------------------------------------- */
+/* Client                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export const DIRECTUS_URL =
   import.meta.env.VITE_DIRECTUS_URL ?? "http://localhost:8055";
 
+const DIRECTUS_TOKEN =
+  import.meta.env.VITE_DIRECTUS_TOKEN ??
+  "EWIUXxRrXZgz2VgpSLXv7-jRdIk2hQNj";
+
 /**
- * Singleton Directus client.
- * - `rest()` enables REST transport
- * - `authentication("session", { credentials: "include" })` uses cookie-based
- *   sessions, matching SESSION_COOKIE_* server settings.
+ * Singleton Directus client authenticated with a static Bearer token.
+ * The token is sent automatically on every REST request.
  */
 export const directus = createDirectus<DirectusSchema>(DIRECTUS_URL)
-  .with(
-    authentication("session", {
-      credentials: "include",
-      autoRefresh: true,
-    })
-  )
-  .with(rest({ credentials: "include" }));
+  .with(staticToken(DIRECTUS_TOKEN))
+  .with(rest());
 
 /* -------------------------------------------------------------------------- */
-/* Auth helpers                                                                */
+/* Asset helper                                                                */
 /* -------------------------------------------------------------------------- */
 
-export async function login(
-  email: string,
-  password: string
-): Promise<AuthenticationData> {
-  return directus.login({ email, password });
-}
-
-export async function logout(): Promise<void> {
-  await directus.logout();
-}
-
-export async function getCurrentUser() {
-  try {
-    return await directus.request(
-      readMe({ fields: ["id", "email", "first_name", "last_name", "role"] })
-    );
-  } catch {
-    return null;
+/**
+ * Build a full URL to a Directus file/asset by its UUID.
+ * Pass `?width=...&height=...&fit=cover` etc. via `params` if needed.
+ */
+export function assetUrl(
+  fileId: string | null | undefined,
+  params?: Record<string, string | number>
+): string | undefined {
+  if (!fileId) return undefined;
+  const url = new URL(`${DIRECTUS_URL}/assets/${fileId}`);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
   }
+  // Token allows access to private files if needed
+  url.searchParams.set("access_token", DIRECTUS_TOKEN);
+  return url.toString();
 }
 
 /* -------------------------------------------------------------------------- */
-/* Re-exports for convenience                                                 */
+/* Re-exports                                                                  */
 /* -------------------------------------------------------------------------- */
 
-export { readItems, readItem, createItem, updateItem, deleteItem, readMe };
+export {
+  readItems,
+  readItem,
+  readSingleton,
+  createItem,
+  updateItem,
+  updateSingleton,
+  deleteItem,
+};
