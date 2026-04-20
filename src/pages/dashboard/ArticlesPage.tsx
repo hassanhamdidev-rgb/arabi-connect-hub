@@ -8,44 +8,56 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
-import { mockArticles, type Article } from "@/lib/mockData";
+import { Plus, Search, Edit, Trash2, Eye, Loader2 } from "lucide-react";
+import { useBlogs, useSaveBlog, useDeleteBlog } from "@/hooks/useDirectus";
+import type { Blog } from "@/lib/directus";
 import { toast } from "sonner";
 
 const ArticlesPage = () => {
-  const [articles, setArticles] = useState<Article[]>(mockArticles);
+  const { data: articles = [], isLoading } = useBlogs();
+  const saveMut = useSaveBlog();
+  const delMut = useDeleteBlog();
+
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Article | null>(null);
+  const [editing, setEditing] = useState<Blog | null>(null);
 
-  const filtered = articles.filter(a =>
-    a.title.includes(search) || a.category.includes(search)
+  const filtered = articles.filter((a) =>
+    a.name?.includes(search) || a.category?.includes(search)
   );
 
   const openNew = () => { setEditing(null); setOpen(true); };
-  const openEdit = (a: Article) => { setEditing(a); setOpen(true); };
+  const openEdit = (a: Blog) => { setEditing(a); setOpen(true); };
 
-  const handleDelete = (id: string) => {
-    setArticles(articles.filter(a => a.id !== id));
-    toast.success("تم حذف المقال");
+  const handleDelete = async (id: number) => {
+    try {
+      await delMut.mutateAsync(id);
+      toast.success("تم حذف المقال");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحذف");
+    }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const data = {
-      title: String(fd.get("title")),
+    const name = String(fd.get("title")).trim();
+    const data: Partial<Blog> = {
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-").slice(0, 80),
       category: String(fd.get("category")),
-      status: String(fd.get("status")) as "published" | "draft",
+      status: fd.get("status") as "published" | "draft",
+      description: String(fd.get("description") ?? ""),
+      content: String(fd.get("content") ?? ""),
+      author: String(fd.get("author") ?? "خالد المجنوني"),
     };
-    if (editing) {
-      setArticles(articles.map(a => a.id === editing.id ? { ...a, ...data } : a));
-      toast.success("تم تحديث المقال");
-    } else {
-      setArticles([{ id: String(Date.now()), ...data, views: 0, date: "اليوم", author: "خالد المجنوني" }, ...articles]);
-      toast.success("تمت إضافة المقال");
+    try {
+      await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
+      toast.success(editing ? "تم تحديث المقال" : "تمت إضافة المقال");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
-    setOpen(false);
   };
 
   return (
@@ -83,9 +95,16 @@ const ArticlesPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((a) => (
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            )}
+            {!isLoading && filtered.map((a) => (
               <TableRow key={a.id}>
-                <TableCell className="font-medium max-w-xs truncate">{a.title}</TableCell>
+                <TableCell className="font-medium max-w-xs truncate">{a.name}</TableCell>
                 <TableCell><Badge variant="secondary">{a.category}</Badge></TableCell>
                 <TableCell>
                   <Badge variant={a.status === "published" ? "default" : "outline"}>
@@ -94,23 +113,29 @@ const ArticlesPage = () => {
                 </TableCell>
                 <TableCell className="flex items-center gap-1 text-muted-foreground">
                   <Eye className="h-3.5 w-3.5" />
-                  {a.views.toLocaleString("ar-SA")}
+                  {(a.views ?? 0).toLocaleString("ar-SA")}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm">{a.date}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {a.date_created ? new Date(a.date_created).toLocaleDateString("ar-SA") : "—"}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button size="icon" variant="ghost" onClick={() => openEdit(a)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleDelete(a.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDelete(a.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {!isLoading && filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   لا توجد مقالات
@@ -122,14 +147,14 @@ const ArticlesPage = () => {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "تعديل المقال" : "مقال جديد"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">العنوان</Label>
-              <Input id="title" name="title" defaultValue={editing?.title} required />
+              <Input id="title" name="title" defaultValue={editing?.name} required />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -138,20 +163,35 @@ const ArticlesPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">الحالة</Label>
-                <select id="status" name="status" defaultValue={editing?.status ?? "draft"}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <select
+                  id="status"
+                  name="status"
+                  defaultValue={editing?.status ?? "draft"}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
                   <option value="draft">مسودة</option>
                   <option value="published">منشور</option>
                 </select>
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="author">الكاتب</Label>
+              <Input id="author" name="author" defaultValue={editing?.author ?? "خالد المجنوني"} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">الوصف المختصر</Label>
+              <Textarea id="description" name="description" rows={2} defaultValue={editing?.description} required />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="content">المحتوى</Label>
-              <Textarea id="content" name="content" rows={6} placeholder="اكتب محتوى المقال..." />
+              <Textarea id="content" name="content" rows={6} defaultValue={editing?.content} placeholder="اكتب محتوى المقال..." />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit">حفظ</Button>
+              <Button type="submit" disabled={saveMut.isPending}>
+                {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                حفظ
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

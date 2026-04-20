@@ -7,32 +7,48 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, GripVertical } from "lucide-react";
-import { mockFAQ, type FAQItem } from "@/lib/mockData";
+import { Plus, Edit, Trash2, GripVertical, Loader2 } from "lucide-react";
+import { useFaqs, useSaveFaq, useDeleteFaq } from "@/hooks/useDirectus";
+import type { Fqa } from "@/lib/directus";
 import { toast } from "sonner";
 
 const FAQAdminPage = () => {
-  const [items, setItems] = useState<FAQItem[]>(mockFAQ);
+  const { data: items = [], isLoading } = useFaqs();
+  const saveMut = useSaveFaq();
+  const delMut = useDeleteFaq();
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<FAQItem | null>(null);
+  const [editing, setEditing] = useState<Fqa | null>(null);
 
-  const handleDelete = (id: string) => {
-    setItems(items.filter(i => i.id !== id));
-    toast.success("تم الحذف");
+  const handleDelete = async (id: number) => {
+    try {
+      await delMut.mutateAsync(id);
+      toast.success("تم الحذف");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحذف");
+    }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const data = { question: String(fd.get("question")), answer: String(fd.get("answer")) };
-    if (editing) {
-      setItems(items.map(i => i.id === editing.id ? { ...i, ...data } : i));
-      toast.success("تم التحديث");
-    } else {
-      setItems([...items, { id: String(Date.now()), ...data, order: items.length + 1 }]);
-      toast.success("تمت الإضافة");
+    const data: Partial<Fqa> = {
+      question: String(fd.get("question")),
+      answer: String(fd.get("answer")),
+      category: String(fd.get("category") ?? "عام"),
+      icon: String(fd.get("icon") ?? "HelpCircle"),
+      creator: String(fd.get("creator") ?? "خالد المجنوني"),
+      meta_title: String(fd.get("question")).slice(0, 60),
+      meta_description: String(fd.get("answer")).slice(0, 160),
+      tl_dr: String(fd.get("answer")).slice(0, 200),
+      status: "active",
+    };
+    try {
+      await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
+      toast.success(editing ? "تم التحديث" : "تمت الإضافة");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
-    setOpen(false);
   };
 
   return (
@@ -45,10 +61,15 @@ const FAQAdminPage = () => {
         </Button>
       }
     >
+      {isLoading && (
+        <div className="flex justify-center py-10">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <Card className="p-2">
         <Accordion type="single" collapsible className="w-full">
           {items.map((item) => (
-            <AccordionItem key={item.id} value={item.id} className="border-border">
+            <AccordionItem key={item.id} value={String(item.id)} className="border-border">
               <div className="flex items-center gap-2 pl-4">
                 <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
                 <AccordionTrigger className="flex-1 text-right hover:no-underline">
@@ -64,7 +85,7 @@ const FAQAdminPage = () => {
                   </Button>
                 </div>
               </div>
-              <AccordionContent className="px-12 text-muted-foreground">
+              <AccordionContent className="px-12 text-muted-foreground whitespace-pre-wrap">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>
@@ -86,9 +107,22 @@ const FAQAdminPage = () => {
               <Label htmlFor="answer">الإجابة</Label>
               <Textarea id="answer" name="answer" defaultValue={editing?.answer} rows={5} required />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="category">التصنيف</Label>
+                <Input id="category" name="category" defaultValue={editing?.category ?? "عام"} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="icon">الأيقونة</Label>
+                <Input id="icon" name="icon" defaultValue={editing?.icon ?? "HelpCircle"} />
+              </div>
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit">حفظ</Button>
+              <Button type="submit" disabled={saveMut.isPending}>
+                {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                حفظ
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

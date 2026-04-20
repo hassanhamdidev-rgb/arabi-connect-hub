@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import NotificationsButton from "./NotificationsButton";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   children: ReactNode;
@@ -14,6 +15,13 @@ interface Props {
 }
 
 const DashboardLayout = ({ children, title, description, actions }: Props) => {
+  const { user } = useAuth();
+  const initials = (() => {
+    if (!user) return "خم";
+    const name = [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+    if (name) return name.split(" ").map((p) => p[0]).slice(0, 2).join("");
+    return user.email.slice(0, 2).toUpperCase();
+  })();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -33,7 +41,7 @@ const DashboardLayout = ({ children, title, description, actions }: Props) => {
             <div className="flex items-center gap-2">
               <NotificationsButton />
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">خم</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">{initials}</AvatarFallback>
               </Avatar>
             </div>
           </header>
