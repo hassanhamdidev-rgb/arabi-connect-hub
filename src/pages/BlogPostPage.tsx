@@ -65,7 +65,7 @@ const BlogPostPage = () => {
           ]),
         ]}
       />
-      <section className="py-16 gradient-teal">
+      <section className="pt-32 pb-16 gradient-teal">
         <div className="section-container">
           <Link to="/blog" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-6 text-sm">
             <ArrowRight className="h-4 w-4" /> العودة للمدونة

@@ -119,7 +119,7 @@ const ContactPage = () => {
   return (
     <Layout>
       {seoNode}
-      <section className="py-20 gradient-teal">
+      <section className="pt-36 pb-20 gradient-teal">
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">
             تواصل معنا
