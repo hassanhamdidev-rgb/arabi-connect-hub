@@ -25,6 +25,8 @@ const Footer = () => {
                 { label: "خدماتنا", path: "/services" },
                 { label: "المدونة", path: "/blog" },
                 { label: "تواصل معنا", path: "/contact" },
+                { label: "سياسة الخصوصية", path: "/privacy" },
+                { label: "الشروط والأحكام", path: "/terms" },
               ].map((link) => (
                 <Link key={link.path} to={link.path} className="text-primary-foreground/70 hover:text-primary-foreground text-sm transition-colors">
                   {link.label}
@@ -69,8 +71,13 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-primary-foreground/20 text-center text-primary-foreground/60 text-sm">
-          © {new Date().getFullYear()} خالد عويد المجنوني للمحاماة والاستشارات القانونية. جميع الحقوق محفوظة.
+        <div className="mt-12 pt-8 border-t border-primary-foreground/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-primary-foreground/60 text-sm">
+          <p>© {new Date().getFullYear()} خالد عويد المجنوني للمحاماة والاستشارات القانونية. جميع الحقوق محفوظة.</p>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy" className="hover:text-primary-foreground transition-colors">سياسة الخصوصية</Link>
+            <span className="opacity-40">•</span>
+            <Link to="/terms" className="hover:text-primary-foreground transition-colors">الشروط والأحكام</Link>
+          </div>
         </div>
       </div>
     </footer>

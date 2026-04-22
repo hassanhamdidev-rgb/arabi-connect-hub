@@ -21,7 +21,7 @@ const AboutPage = () => {
         ]}
       />
       {/* Hero */}
-      <section className="py-20 gradient-teal">
+      <section className="pt-36 pb-20 gradient-teal">
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">من نحن</h1>
           <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
@@ -54,12 +54,12 @@ const AboutPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="glass-card rounded-xl p-6 text-center"
+                  className="modern-card p-6 text-center group"
                 >
-                  <div className="w-12 h-12 rounded-lg gradient-gold flex items-center justify-center mx-auto mb-4">
-                    <item.icon className="w-6 h-6 text-secondary-foreground" />
+                  <div className="w-14 h-14 rounded-2xl gradient-gold flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <item.icon className="w-7 h-7 text-secondary-foreground" />
                   </div>
-                  <h3 className="font-heading font-bold text-foreground mb-2">{item.title}</h3>
+                  <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{item.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
                 </motion.div>
               ))}
@@ -77,9 +77,11 @@ const AboutPage = () => {
                   "قضايا العمل والعمال",
                   "التحكيم التجاري الدولي",
                 ].map((exp) => (
-                  <div key={exp} className="flex items-center gap-3 p-3 rounded-lg bg-muted">
-                    <CheckCircle className="w-5 h-5 text-accent shrink-0" />
-                    <span className="text-foreground">{exp}</span>
+                  <div key={exp} className="modern-card flex items-center gap-3 p-4 group">
+                    <div className="w-9 h-9 rounded-lg gradient-gold flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <CheckCircle className="w-5 h-5 text-secondary-foreground" />
+                    </div>
+                    <span className="text-foreground font-medium">{exp}</span>
                   </div>
                 ))}
               </div>
