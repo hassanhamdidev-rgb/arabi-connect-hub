@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, LayoutDashboard } from "lucide-react";
+import { Menu, X, Phone, LayoutDashboard, ChevronDown, User, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-mark.png";
 
-const navLinks = [
+const navLinks: Array<{
+  label: string;
+  path: string;
+  dropdown?: Array<{ label: string; path: string; icon: React.ComponentType<{ className?: string }>; desc: string }>;
+}> = [
   { label: "الرئيسية", path: "/" },
   { label: "من نحن", path: "/about" },
-  { label: "خدماتنا", path: "/services" },
+  {
+    label: "خدماتنا",
+    path: "/services",
+    dropdown: [
+      { label: "فردي", path: "/services?type=individual", icon: User, desc: "خدمات قانونية للأفراد" },
+      { label: "أعمال", path: "/services?type=business", icon: Briefcase, desc: "خدمات قانونية للشركات" },
+    ],
+  },
   { label: "المدونة", path: "/blog" },
   { label: "الأسئلة الشائعة", path: "/faq" },
   { label: "تواصل معنا", path: "/contact" },
@@ -16,14 +27,29 @@ const navLinks = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <nav className="fixed top-4 right-0 left-0 z-50 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Pill container — nextsense style */}
-        <div className="bg-primary/90 backdrop-blur-xl border border-primary-foreground/10 shadow-2xl rounded-full px-4 sm:px-6 py-2.5">
+        {/* Pill container — transparent, blurs more on scroll */}
+        <div
+          className={`backdrop-blur-xl border shadow-2xl rounded-full px-4 sm:px-6 py-2.5 transition-all duration-300 ${
+            scrolled
+              ? "bg-primary/80 border-primary-foreground/15"
+              : "bg-primary/30 border-primary-foreground/15"
+          }`}
+        >
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0 pr-2">
@@ -35,6 +61,51 @@ const Navbar = () => {
             <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
               {navLinks.map((link) => {
                 const active = location.pathname === link.path;
+                if (link.dropdown) {
+                  const open = openDropdown === link.path;
+                  return (
+                    <div
+                      key={link.path}
+                      className="relative"
+                      onMouseEnter={() => setOpenDropdown(link.path)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <Link
+                        to={link.path}
+                        className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all inline-flex items-center gap-1 ${
+                          active
+                            ? "bg-primary-foreground/15 text-primary-foreground"
+                            : "text-primary-foreground/70 hover:text-primary-foreground"
+                        }`}
+                      >
+                        {link.label}
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+                      </Link>
+                      {open && (
+                        <div className="absolute top-full right-1/2 translate-x-1/2 mt-3 w-72 animate-fade-in">
+                          <div className="bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-2">
+                            {link.dropdown.map((item) => (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                onClick={() => setOpenDropdown(null)}
+                                className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted transition-colors group"
+                              >
+                                <div className="w-9 h-9 rounded-lg gradient-gold flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                  <item.icon className="w-4 h-4 text-secondary-foreground" />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-foreground text-sm">{item.label}</div>
+                                  <div className="text-xs text-muted-foreground mt-0.5">{item.desc}</div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
                 return (
                   <Link
                     key={link.path}
