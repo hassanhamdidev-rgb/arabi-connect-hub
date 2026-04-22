@@ -1,17 +1,13 @@
 import { Link } from "react-router-dom";
-import { Scale, FileText, Users, Building2, Shield, Briefcase } from "lucide-react";
+import * as Icons from "lucide-react";
+import { Scale, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-
-const services = [
-  { icon: Scale, title: "القضايا التجارية", desc: "تمثيل قانوني متخصص في النزاعات التجارية والعقود" },
-  { icon: FileText, title: "الاستشارات القانونية", desc: "استشارات قانونية شاملة للأفراد والشركات" },
-  { icon: Users, title: "قضايا الأحوال الشخصية", desc: "معالجة قضايا الأسرة والطلاق والحضانة" },
-  { icon: Building2, title: "القضايا العقارية", desc: "حل النزاعات العقارية وصياغة العقود" },
-  { icon: Shield, title: "القضايا الجنائية", desc: "دفاع متخصص في القضايا الجنائية" },
-  { icon: Briefcase, title: "قضايا العمل", desc: "حماية حقوق العمال وأصحاب العمل" },
-];
+import { useServices } from "@/hooks/useDirectus";
 
 const ServicesSection = () => {
+  const { data, isLoading } = useServices();
+  const services = (data ?? []).filter((s) => s.status === "active");
+
   return (
     <section className="py-20 bg-background">
       <div className="section-container">
@@ -25,28 +21,41 @@ const ServicesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service, i) => (
-            <motion.div
-              key={service.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Link
-                to="/services"
-                className="glass-card rounded-xl p-6 block group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="w-12 h-12 rounded-lg gradient-gold flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <service.icon className="w-6 h-6 text-secondary-foreground" />
-                </div>
-                <h3 className="font-heading text-lg font-bold text-foreground mb-2">{service.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{service.desc}</p>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : services.length === 0 ? (
+          <p className="text-center text-muted-foreground">لا توجد خدمات متاحة حالياً.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service, i) => {
+              const IconCmp =
+                (service.icon && (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
+                Scale;
+              return (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Link
+                    to="/services"
+                    className="glass-card rounded-xl p-6 block group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  >
+                    <div className="w-12 h-12 rounded-lg gradient-gold flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <IconCmp className="w-6 h-6 text-secondary-foreground" />
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-foreground mb-2">{service.name}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{service.description}</p>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
