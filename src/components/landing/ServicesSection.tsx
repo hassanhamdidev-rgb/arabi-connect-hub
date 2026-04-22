@@ -43,13 +43,16 @@ const ServicesSection = () => {
                 >
                   <Link
                     to="/services"
-                    className="glass-card rounded-xl p-6 block group hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                    className="modern-card p-6 block group h-full"
                   >
-                    <div className="w-12 h-12 rounded-lg gradient-gold flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <IconCmp className="w-6 h-6 text-secondary-foreground" />
+                    <div className="relative z-10">
+                      <div className="w-14 h-14 rounded-2xl gradient-gold flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                        <IconCmp className="w-7 h-7 text-secondary-foreground" />
+                      </div>
+                      <h3 className="font-heading text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{service.name}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4">{service.description}</p>
+                      <span className="link-btn text-sm">اعرف المزيد <Scale className="w-4 h-4" /></span>
                     </div>
-                    <h3 className="font-heading text-lg font-bold text-foreground mb-2">{service.name}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{service.description}</p>
                   </Link>
                 </motion.div>
               );

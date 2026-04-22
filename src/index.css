@@ -100,6 +100,59 @@
   .glass-card {
     @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg;
   }
+
+  /* Modern interactive card — soft glass, gold ring on hover, lift + sheen */
+  .modern-card {
+    @apply relative overflow-hidden rounded-2xl bg-card/90 backdrop-blur-md
+           border border-border/60 shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.15)]
+           transition-all duration-500 ease-out
+           hover:-translate-y-1.5 hover:shadow-[0_25px_50px_-12px_hsl(var(--primary)/0.35)]
+           hover:border-accent/50;
+  }
+  .modern-card::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(135deg, hsl(var(--accent)/0.08) 0%, transparent 50%, hsl(var(--primary)/0.06) 100%);
+  }
+  .modern-card:hover::before { @apply opacity-100; }
+
+  /* Sheen sweep for cards with image media */
+  .card-sheen {
+    @apply relative overflow-hidden;
+  }
+  .card-sheen::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-700 ease-out;
+    background: linear-gradient(110deg, transparent 30%, hsl(0 0% 100% / 0.18) 50%, transparent 70%);
+  }
+  .group:hover .card-sheen::after { @apply translate-x-full; }
+
+  /* Animated underline link button */
+  .link-btn {
+    @apply relative inline-flex items-center gap-1 font-medium text-accent
+           transition-all duration-300 hover:gap-2;
+  }
+  .link-btn::after {
+    content: "";
+    @apply absolute -bottom-0.5 right-0 h-0.5 w-0 bg-accent transition-all duration-300;
+  }
+  .link-btn:hover::after { @apply w-full right-auto left-0; }
+
+  /* Pill CTA used inside cards (like "Book now") */
+  .card-cta {
+    @apply inline-flex w-full items-center justify-center rounded-full
+           bg-card text-card-foreground font-bold py-3 px-6
+           shadow-lg transition-all duration-300
+           hover:bg-accent hover:text-accent-foreground hover:shadow-xl hover:scale-[1.02]
+           active:scale-[0.98];
+  }
+
+  /* Soft chip/tag */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-muted/70 backdrop-blur
+           px-3 py-1 text-xs font-medium text-foreground/80
+           border border-border/50;
+  }
 }
 
 @layer utilities {
