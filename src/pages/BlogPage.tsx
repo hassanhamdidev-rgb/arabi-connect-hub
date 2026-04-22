@@ -82,29 +82,29 @@ const BlogPage = () => {
                   >
                     <Link
                       to={`/blog/${post.slug || post.id}`}
-                      className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full"
+                      className="modern-card block group h-full"
                     >
-                      <div className="h-44 gradient-teal flex items-center justify-center overflow-hidden">
+                      <div className="h-48 gradient-teal flex items-center justify-center overflow-hidden card-sheen">
                         {cover ? (
-                          <img src={cover} alt={post.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                          <img src={cover} alt={post.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                         ) : (
                           <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
                         )}
                       </div>
-                      <div className="p-6">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full font-medium">{post.category}</span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <div className="p-6 relative z-10">
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <span className="chip text-accent border-accent/30 bg-accent/10">{post.category}</span>
+                          <span className="chip">
                             <Calendar className="w-3 h-3" /> {formatDate(post.date_created)}
                           </span>
                         </div>
-                        <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-accent transition-colors">
                           {post.name}
                         </h3>
                         <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
                           {post.excerpt ?? post.description}
                         </p>
-                        <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                        <span className="link-btn text-sm">
                           اقرأ المزيد <ArrowLeft className="w-4 h-4" />
                         </span>
                       </div>

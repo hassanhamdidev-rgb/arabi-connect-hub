@@ -37,20 +37,21 @@ const BlogPreview = () => {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
             >
-              <Link to={`/blog/${post.id}`} className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all">
-                <div className="h-48 gradient-teal flex items-center justify-center">
+              <Link to={`/blog/${post.id}`} className="modern-card block group h-full">
+                <div className="h-48 gradient-teal flex items-center justify-center card-sheen">
                   <span className="text-primary-foreground/30 font-heading text-6xl font-bold">{post.id}</span>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full font-medium">{post.category}</span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="p-6 relative z-10">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <span className="chip text-accent border-accent/30 bg-accent/10">{post.category}</span>
+                    <span className="chip">
                       <Calendar className="w-3 h-3" />
                       {post.date}
                     </span>
                   </div>
-                  <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{post.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{post.excerpt}</p>
+                  <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{post.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">{post.excerpt}</p>
+                  <span className="link-btn text-sm">اقرأ المزيد <ArrowLeft className="w-4 h-4" /></span>
                 </div>
               </Link>
             </motion.div>

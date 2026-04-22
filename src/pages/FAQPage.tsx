@@ -44,7 +44,7 @@ const FAQPage = () => {
           ) : (
             <Accordion type="single" collapsible className="space-y-3">
               {faqs.map((faq) => (
-                <AccordionItem key={faq.id} value={`item-${faq.id}`} className="glass-card rounded-xl px-6 border-none">
+                <AccordionItem key={faq.id} value={`item-${faq.id}`} className="modern-card px-6 border-none data-[state=open]:border-accent/50">
                   <AccordionTrigger className="text-foreground font-heading font-bold text-right hover:no-underline py-5">
                     {faq.question}
                   </AccordionTrigger>

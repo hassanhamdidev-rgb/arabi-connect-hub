@@ -26,8 +26,9 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-xl p-6"
+              className="modern-card p-6 group"
             >
+              <div className="relative z-10">
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} className="w-4 h-4 fill-accent text-accent" />
@@ -42,6 +43,7 @@ const TestimonialsSection = () => {
                   <div className="font-heading font-bold text-sm text-foreground">{t.name}</div>
                   <div className="text-muted-foreground text-xs">{t.role}</div>
                 </div>
+              </div>
               </div>
             </motion.div>
           ))}
