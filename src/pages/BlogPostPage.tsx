@@ -1,6 +1,6 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Calendar, User, ArrowRight, Share2, MessageCircle } from "lucide-react";
+import { Calendar, User, ArrowRight, Share2, MessageCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,53 +12,59 @@ import {
 } from "@/components/ui/carousel";
 import SEO from "@/components/SEO";
 import { articleLd, breadcrumbsLd } from "@/lib/seo";
+import { useBlogs } from "@/hooks/useDirectus";
+import { assetUrl } from "@/lib/directus";
 
-const posts = [
-  { id: "1", title: "حقوقك القانونية عند الفصل التعسفي", category: "قضايا العمل", date: "15 أبريل 2026", author: "خالد المجنوني", excerpt: "تعرف على حقوقك القانونية في حالة الفصل التعسفي." },
-  { id: "2", title: "كيف تحمي حقوقك في العقود التجارية", category: "القضايا التجارية", date: "10 أبريل 2026", author: "خالد المجنوني", excerpt: "دليل شامل لأهم النقاط في العقود التجارية." },
-  { id: "3", title: "إجراءات رفع الدعوى في المحاكم السعودية", category: "إجراءات قانونية", date: "5 أبريل 2026", author: "خالد المجنوني", excerpt: "شرح مبسط للإجراءات المطلوبة." },
-  { id: "4", title: "حقوق المرأة في نظام الأحوال الشخصية", category: "أحوال شخصية", date: "1 أبريل 2026", author: "خالد المجنوني", excerpt: "نظرة شاملة على حقوق المرأة." },
-  { id: "5", title: "التحكيم التجاري كبديل للتقاضي", category: "تحكيم", date: "28 مارس 2026", author: "خالد المجنوني", excerpt: "مزايا التحكيم التجاري." },
-  { id: "6", title: "حماية الملكية الفكرية في السعودية", category: "ملكية فكرية", date: "25 مارس 2026", author: "خالد المجنوني", excerpt: "كيفية حماية علاماتك التجارية." },
-];
-
-const galleryGradients = [
-  "linear-gradient(135deg, hsl(var(--teal)) 0%, hsl(var(--teal-dark)) 100%)",
-  "linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%)",
-  "linear-gradient(135deg, hsl(var(--teal-light)) 0%, hsl(var(--gold)) 100%)",
-];
+const formatDate = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
 
 const BlogPostPage = () => {
   const { id } = useParams();
-  const post = posts.find((p) => p.id === id);
+  const { data, isLoading } = useBlogs();
+  const posts = (data ?? []).filter((p) => p.status === "published");
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  const post = posts.find((p) => p.slug === id || String(p.id) === id);
   if (!post) return <Navigate to="/blog" replace />;
 
-  const related = posts.filter((p) => p.id !== id).slice(0, 5);
+  const related = posts.filter((p) => p.id !== post.id).slice(0, 5);
+  const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 1600 }) : undefined;
+  const galleryImages = (post.files ?? []).slice(0, 4).map((f) => assetUrl(String(f), { width: 1200 }));
 
   return (
     <Layout>
       <SEO
-        title={`${post.title} | المدونة القانونية`}
-        description={post.excerpt}
-        path={`/blog/${post.id}`}
+        title={`${post.meta_title || post.name} | المدونة القانونية`}
+        description={post.meta_description || post.excerpt || post.description}
+        path={`/blog/${post.slug || post.id}`}
         type="article"
         author={post.author}
-        keywords={[post.category, "مقال قانوني", "محامي السعودية"]}
+        image={cover}
+        keywords={[post.category, post.tag, "مقال قانوني"].filter(Boolean) as string[]}
         jsonLd={[
           articleLd({
-            title: post.title,
-            description: post.excerpt,
-            path: `/blog/${post.id}`,
+            title: post.name,
+            description: post.excerpt || post.description,
+            path: `/blog/${post.slug || post.id}`,
             author: post.author,
+            image: cover,
           }),
           breadcrumbsLd([
             { name: "الرئيسية", path: "/" },
             { name: "المدونة", path: "/blog" },
-            { name: post.title, path: `/blog/${post.id}` },
+            { name: post.name, path: `/blog/${post.slug || post.id}` },
           ]),
         ]}
       />
-      {/* Hero */}
       <section className="py-16 gradient-teal">
         <div className="section-container">
           <Link to="/blog" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-6 text-sm">
@@ -68,67 +74,54 @@ const BlogPostPage = () => {
             {post.category}
           </span>
           <h1 className="font-heading text-3xl sm:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
-            {post.title}
+            {post.name}
           </h1>
           <div className="flex flex-wrap items-center gap-4 text-primary-foreground/80 text-sm">
             <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> {post.author}</span>
-            <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {post.date}</span>
+            <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {formatDate(post.date_created)}</span>
+            {post.reading_time && <span>· {post.reading_time} د قراءة</span>}
           </div>
         </div>
       </section>
 
-      {/* Modern Carousel */}
-      <section className="py-12 bg-background">
-        <div className="section-container">
-          <Carousel opts={{ loop: true, direction: "rtl" }} className="max-w-5xl mx-auto">
-            <CarouselContent>
-              {galleryGradients.map((g, i) => (
-                <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    className="aspect-[16/10] rounded-2xl shadow-xl overflow-hidden flex items-end p-8 relative"
-                    style={{ background: g }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="relative text-primary-foreground">
-                      <div className="text-xs opacity-80 mb-1">صورة {i + 1}</div>
-                      <div className="font-heading font-bold text-xl">{post.title}</div>
-                    </div>
-                  </motion.div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden sm:flex" />
-            <CarouselNext className="hidden sm:flex" />
-          </Carousel>
-        </div>
-      </section>
+      {galleryImages.length > 0 && (
+        <section className="py-12 bg-background">
+          <div className="section-container">
+            <Carousel opts={{ loop: true, direction: "rtl" }} className="max-w-5xl mx-auto">
+              <CarouselContent>
+                {galleryImages.map((src, i) => (
+                  <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      className="aspect-[16/10] rounded-2xl shadow-xl overflow-hidden bg-muted"
+                    >
+                      {src && <img src={src} alt={`${post.name} ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />}
+                    </motion.div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex" />
+              <CarouselNext className="hidden sm:flex" />
+            </Carousel>
+          </div>
+        </section>
+      )}
 
-      {/* Article body */}
       <section className="py-12 bg-background">
         <div className="section-container max-w-3xl">
-          <article className="prose prose-lg max-w-none text-foreground leading-loose">
-            <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
-            <p className="mb-4">
-              يعد هذا المجال من أهم المجالات القانونية التي تتطلب خبرة عميقة وفهمًا دقيقًا للأنظمة واللوائح المعمول بها في المملكة العربية السعودية.
-              نقدم لكم في هذا المقال شرحًا تفصيليًا لأبرز الجوانب التي يجب الانتباه إليها.
-            </p>
-            <h2 className="font-heading text-2xl font-bold mt-8 mb-4 text-primary">النقاط الرئيسية</h2>
-            <ul className="space-y-2 list-disc pr-6">
-              <li>فهم الإطار القانوني الحاكم للقضية</li>
-              <li>توثيق جميع الإجراءات والمراسلات</li>
-              <li>الاستعانة بمحامٍ متخصص في وقت مبكر</li>
-              <li>معرفة المواعيد النظامية والمدد القانونية</li>
-            </ul>
-            <h2 className="font-heading text-2xl font-bold mt-8 mb-4 text-primary">الخلاصة</h2>
-            <p>
-              ننصح بالتواصل مع مكتبنا للحصول على استشارة قانونية مخصصة لحالتكم، حيث نملك الخبرة الكافية للتعامل مع مختلف القضايا بكفاءة عالية.
-            </p>
-          </article>
+          {post.tl_dr && (
+            <div className="glass-card rounded-xl p-5 mb-8 border-r-4 border-accent">
+              <div className="text-xs font-bold text-accent mb-1">باختصار</div>
+              <p className="text-foreground text-sm leading-relaxed">{post.tl_dr}</p>
+            </div>
+          )}
+          <article
+            className="prose prose-lg max-w-none text-foreground leading-loose prose-headings:font-heading prose-headings:text-primary prose-a:text-accent"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
-          {/* Share */}
           <div className="mt-10 pt-6 border-t border-border flex flex-wrap items-center gap-3">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Share2 className="h-4 w-4" /> شارك المقال:
@@ -140,31 +133,39 @@ const BlogPostPage = () => {
         </div>
       </section>
 
-      {/* Related */}
-      <section className="py-12 bg-muted/30">
-        <div className="section-container">
-          <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">مقالات ذات صلة</h2>
-          <Carousel opts={{ align: "start", direction: "rtl" }}>
-            <CarouselContent>
-              {related.map((p) => (
-                <CarouselItem key={p.id} className="md:basis-1/2 lg:basis-1/3">
-                  <Link to={`/blog/${p.id}`} className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full">
-                    <div className="h-32 gradient-teal flex items-center justify-center">
-                      <span className="text-primary-foreground/20 font-heading text-5xl font-bold">{p.id}</span>
-                    </div>
-                    <div className="p-5">
-                      <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">{p.category}</span>
-                      <h3 className="font-heading font-bold text-foreground mt-2 group-hover:text-primary transition-colors">{p.title}</h3>
-                    </div>
-                  </Link>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="py-12 bg-muted/30">
+          <div className="section-container">
+            <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">مقالات ذات صلة</h2>
+            <Carousel opts={{ align: "start", direction: "rtl" }}>
+              <CarouselContent>
+                {related.map((p) => {
+                  const rCover = p.files?.[0] ? assetUrl(String(p.files[0]), { width: 600 }) : undefined;
+                  return (
+                    <CarouselItem key={p.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Link to={`/blog/${p.slug || p.id}`} className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full">
+                        <div className="h-32 gradient-teal flex items-center justify-center overflow-hidden">
+                          {rCover ? (
+                            <img src={rCover} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <span className="text-primary-foreground/20 font-heading text-5xl font-bold">{p.id}</span>
+                          )}
+                        </div>
+                        <div className="p-5">
+                          <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">{p.category}</span>
+                          <h3 className="font-heading font-bold text-foreground mt-2 group-hover:text-primary transition-colors line-clamp-2">{p.name}</h3>
+                        </div>
+                      </Link>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        </section>
+      )}
     </Layout>
   );
 };

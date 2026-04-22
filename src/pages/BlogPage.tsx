@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { Calendar, ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, SITE_URL } from "@/lib/seo";
+import { useBlogs } from "@/hooks/useDirectus";
+import { assetUrl } from "@/lib/directus";
 
-const blogListLd = (posts: { id: string; title: string; category: string; excerpt: string }[]) => ({
+const blogListLd = (posts: { id: string | number; title: string; category: string; excerpt: string }[]) => ({
   "@context": "https://schema.org",
   "@type": "Blog",
   name: "المدونة القانونية",
@@ -20,16 +22,13 @@ const blogListLd = (posts: { id: string; title: string; category: string; excerp
   })),
 });
 
-const posts = [
-  { id: "1", title: "حقوقك القانونية عند الفصل التعسفي", category: "قضايا العمل", date: "15 أبريل 2026", excerpt: "تعرف على حقوقك القانونية في حالة الفصل التعسفي وكيفية المطالبة بالتعويض المناسب وفق نظام العمل السعودي." },
-  { id: "2", title: "كيف تحمي حقوقك في العقود التجارية", category: "القضايا التجارية", date: "10 أبريل 2026", excerpt: "دليل شامل لأهم النقاط التي يجب مراعاتها عند توقيع العقود التجارية لحماية مصالحك." },
-  { id: "3", title: "إجراءات رفع الدعوى في المحاكم السعودية", category: "إجراءات قانونية", date: "5 أبريل 2026", excerpt: "شرح مبسط للإجراءات المطلوبة لرفع دعوى قضائية في المملكة العربية السعودية." },
-  { id: "4", title: "حقوق المرأة في نظام الأحوال الشخصية", category: "أحوال شخصية", date: "1 أبريل 2026", excerpt: "نظرة شاملة على حقوق المرأة في نظام الأحوال الشخصية السعودي الجديد." },
-  { id: "5", title: "التحكيم التجاري كبديل للتقاضي", category: "تحكيم", date: "28 مارس 2026", excerpt: "مزايا التحكيم التجاري وكيف يمكن أن يوفر وقتاً وجهداً مقارنة بالتقاضي التقليدي." },
-  { id: "6", title: "حماية الملكية الفكرية في السعودية", category: "ملكية فكرية", date: "25 مارس 2026", excerpt: "كيفية حماية علاماتك التجارية وبراءات اختراعك وحقوق النشر في المملكة." },
-];
+const formatDate = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
 
 const BlogPage = () => {
+  const { data, isLoading } = useBlogs();
+  const posts = (data ?? []).filter((p) => p.status === "published");
+
   return (
     <Layout>
       <SEO
@@ -38,7 +37,14 @@ const BlogPage = () => {
         path="/blog"
         keywords={["مدونة قانونية", "مقالات قانون سعودي", "نصائح محامي"]}
         jsonLd={[
-          blogListLd(posts),
+          blogListLd(
+            posts.map((p) => ({
+              id: p.slug || p.id,
+              title: p.name,
+              category: p.category,
+              excerpt: p.excerpt ?? p.description ?? "",
+            }))
+          ),
           breadcrumbsLd([
             { name: "الرئيسية", path: "/" },
             { name: "المدونة", path: "/blog" },
@@ -56,36 +62,58 @@ const BlogPage = () => {
 
       <section className="py-20 bg-background">
         <div className="section-container">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post, i) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <Link to={`/blog/${post.id}`} className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full">
-                  <div className="h-44 gradient-teal flex items-center justify-center">
-                    <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full font-medium">{post.category}</span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> {post.date}
-                      </span>
-                    </div>
-                    <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{post.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">{post.excerpt}</p>
-                    <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                      اقرأ المزيد <ArrowLeft className="w-4 h-4" />
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : posts.length === 0 ? (
+            <p className="text-center text-muted-foreground py-16">لا توجد مقالات منشورة حالياً.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.map((post, i) => {
+                const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 800 }) : undefined;
+                return (
+                  <motion.div
+                    key={post.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Link
+                      to={`/blog/${post.slug || post.id}`}
+                      className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full"
+                    >
+                      <div className="h-44 gradient-teal flex items-center justify-center overflow-hidden">
+                        {cover ? (
+                          <img src={cover} alt={post.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                        ) : (
+                          <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
+                        )}
+                      </div>
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full font-medium">{post.category}</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> {formatDate(post.date_created)}
+                          </span>
+                        </div>
+                        <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {post.name}
+                        </h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+                          {post.excerpt ?? post.description}
+                        </p>
+                        <span className="text-accent text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                          اقرأ المزيد <ArrowLeft className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     </Layout>
