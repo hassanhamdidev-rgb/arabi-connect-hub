@@ -143,7 +143,7 @@ const FloatingSocial = () => {
                     : "translate(0,0) scale(0.4)",
                   transitionDelay: open ? `${i * 40}ms` : "0ms",
                 }}
-                className={`absolute inset-0 w-12 h-12 rounded-full flex items-center justify-center
+                className={`absolute left-1 top-1 w-10 h-10 rounded-full flex items-center justify-center
                   bg-card text-primary border border-border shadow-lg
                   transition-all duration-300 ease-out
                   hover:bg-accent hover:text-accent-foreground hover:scale-110
