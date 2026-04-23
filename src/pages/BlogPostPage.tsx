@@ -39,7 +39,6 @@ const BlogPostPage = () => {
 
   const related = posts.filter((p) => p.id !== post.id).slice(0, 5);
   const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 1600 }) : undefined;
-  const galleryImages = (post.files ?? []).slice(0, 4).map((f) => assetUrl(String(f), { width: 1200 }));
 
   return (
     <Layout>
