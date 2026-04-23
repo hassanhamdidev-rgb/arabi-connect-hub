@@ -46,13 +46,21 @@ const PHONE_DISPLAY = "+966 50 000 0000";
 const FloatingSocial = () => {
   const [open, setOpen] = useState(false);
 
-  // Radial positions for the 4 social icons (arc opening to the upper-right of FAB).
+  // Radial positions for the social icons (arc opening to the upper-right of FAB).
   // FAB sits bottom-left; icons fan out along a quarter-circle.
-  const RADIUS = 78; // px
+  // Responsive radius: larger on bigger phones, smaller on compact screens — but always
+  // greater than the FAB radius (24px) + icon radius (20px) + gap to avoid overlap.
+  // Item size: 40px (w-10) instead of 48px so they sit comfortably along the arc.
+  const ITEM_SIZE = 40; // px (w-10 h-10)
+  const FAB_SIZE = 48;  // px (w-12 h-12)
+  // Min radius needed so item edges don't touch FAB edge (+ 8px breathing room)
+  const MIN_RADIUS = FAB_SIZE / 2 + ITEM_SIZE / 2 + 8; // = 52
+  // Scale radius with item count so a wider arc still keeps even spacing
+  const RADIUS = Math.max(MIN_RADIUS, 60 + socials.length * 6); // 4 items -> 84
   const positions = socials.map((_, i) => {
-    // Spread across ~75° starting straight up (-90°) toward the right (-15°)
-    const startDeg = -90;
-    const endDeg = -15;
+    // Spread across ~95° starting just past straight up (-95°) toward the right (0°)
+    const startDeg = -95;
+    const endDeg = 0;
     const t = socials.length === 1 ? 0 : i / (socials.length - 1);
     const angle = (startDeg + (endDeg - startDeg) * t) * (Math.PI / 180);
     const x = Math.cos(angle) * RADIUS;
