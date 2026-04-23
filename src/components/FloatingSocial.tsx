@@ -1,4 +1,5 @@
-import { Phone } from "lucide-react";
+import { useState } from "react";
+import { Phone, Plus, X } from "lucide-react";
 
 const socials: Array<{ label: string; href: string; svg: JSX.Element }> = [
   {
@@ -43,9 +44,25 @@ const PHONE = "+966500000000";
 const PHONE_DISPLAY = "+966 50 000 0000";
 
 const FloatingSocial = () => {
+  const [open, setOpen] = useState(false);
+
+  // Radial positions for the 4 social icons (arc opening to the upper-right of FAB).
+  // FAB sits bottom-left; icons fan out along a quarter-circle.
+  const RADIUS = 78; // px
+  const positions = socials.map((_, i) => {
+    // Spread across ~75° starting straight up (-90°) toward the right (-15°)
+    const startDeg = -90;
+    const endDeg = -15;
+    const t = socials.length === 1 ? 0 : i / (socials.length - 1);
+    const angle = (startDeg + (endDeg - startDeg) * t) * (Math.PI / 180);
+    const x = Math.cos(angle) * RADIUS;
+    const y = Math.sin(angle) * RADIUS;
+    return { x, y };
+  });
+
   return (
     <>
-      {/* Left rail — vertical socials, icon above icon */}
+      {/* Left rail — vertical socials, desktop only */}
       <aside
         aria-label="روابط التواصل الاجتماعي"
         className="hidden md:flex fixed left-3 top-1/2 -translate-y-1/2 z-40 flex-col gap-2 p-2 rounded-full bg-card/70 backdrop-blur-md border border-border shadow-lg"
@@ -67,7 +84,7 @@ const FloatingSocial = () => {
         ))}
       </aside>
 
-      {/* Right rail — call CTA */}
+      {/* Right rail — call CTA, desktop only */}
       <aside
         aria-label="اتصل بنا"
         className="hidden md:flex fixed right-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2"
@@ -89,11 +106,69 @@ const FloatingSocial = () => {
         </a>
       </aside>
 
-      {/* Mobile floating call button */}
+      {/* Mobile — radial fan menu (socials) + call button */}
+      <div className="md:hidden fixed bottom-5 left-5 z-40">
+        {/* Backdrop when open (taps to close) */}
+        {open && (
+          <button
+            aria-label="إغلاق"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 -z-10 bg-foreground/10 backdrop-blur-[2px] animate-fade-in"
+          />
+        )}
+
+        {/* Radial socials */}
+        <div className="relative w-12 h-12">
+          {socials.map(({ label, href, svg }, i) => {
+            const { x, y } = positions[i];
+            return (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                tabIndex={open ? 0 : -1}
+                style={{
+                  transform: open
+                    ? `translate(${x}px, ${y}px) scale(1)`
+                    : "translate(0,0) scale(0.4)",
+                  transitionDelay: open ? `${i * 40}ms` : "0ms",
+                }}
+                className={`absolute inset-0 w-12 h-12 rounded-full flex items-center justify-center
+                  bg-card text-primary border border-border shadow-lg
+                  transition-all duration-300 ease-out
+                  hover:bg-accent hover:text-accent-foreground hover:scale-110
+                  ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+              >
+                {svg}
+              </a>
+            );
+          })}
+
+          {/* Center FAB toggle */}
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label={open ? "إغلاق روابط التواصل" : "فتح روابط التواصل"}
+            className="relative w-12 h-12 rounded-full gradient-teal shadow-xl flex items-center justify-center text-primary-foreground transition-transform active:scale-95"
+          >
+            <span className={`absolute transition-all duration-300 ${open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`}>
+              <Plus className="w-5 h-5" />
+            </span>
+            <span className={`absolute transition-all duration-300 ${open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"}`}>
+              <X className="w-5 h-5" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile floating call button (right side) */}
       <a
         href={`tel:${PHONE}`}
         aria-label="اتصل بنا"
-        className="md:hidden fixed bottom-5 left-5 z-40 w-12 h-12 rounded-full gradient-gold shadow-xl flex items-center justify-center"
+        className="md:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full gradient-gold shadow-xl flex items-center justify-center"
       >
         <Phone className="w-5 h-5 text-secondary-foreground" />
       </a>
