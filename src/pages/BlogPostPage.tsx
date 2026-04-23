@@ -14,6 +14,7 @@ import SEO from "@/components/SEO";
 import { articleLd, breadcrumbsLd } from "@/lib/seo";
 import { useBlogs } from "@/hooks/useDirectus";
 import { assetUrl } from "@/lib/directus";
+import MediaRenderer from "@/components/MediaRenderer";
 
 const formatDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
@@ -84,20 +85,24 @@ const BlogPostPage = () => {
         </div>
       </section>
 
-      {galleryImages.length > 0 && (
+      {(post.files?.length ?? 0) > 0 && (
         <section className="py-12 bg-background">
           <div className="section-container">
             <Carousel opts={{ loop: true, direction: "rtl" }} className="max-w-5xl mx-auto">
               <CarouselContent>
-                {galleryImages.map((src, i) => (
+                {(post.files ?? []).slice(0, 6).map((fileId, i) => (
                   <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
-                      className="aspect-[16/10] rounded-2xl shadow-xl overflow-hidden bg-muted"
+                      className="modern-card overflow-hidden"
                     >
-                      {src && <img src={src} alt={`${post.name} ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />}
+                      <MediaRenderer
+                        fileId={fileId}
+                        alt={`${post.name} ${i + 1}`}
+                        className="aspect-[16/10] rounded-2xl"
+                      />
                     </motion.div>
                   </CarouselItem>
                 ))}
