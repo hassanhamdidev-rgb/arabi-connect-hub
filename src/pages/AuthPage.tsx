@@ -134,9 +134,9 @@ const AuthPage = () => {
                     />
                     تذكرني
                   </label>
-                  <button type="button" className="text-accent hover:underline font-medium">
+                  <Link to="/forgot-password" className="text-accent hover:underline font-medium">
                     نسيت كلمة المرور؟
-                  </button>
+                  </Link>
                 </div>
 
                 <Button
