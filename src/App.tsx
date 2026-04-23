@@ -9,7 +9,9 @@ import FAQPage from "./pages/FAQPage";
 import BlogPage from "./pages/BlogPage";
 import ContactPage from "./pages/ContactPage";
 import AuthPage from "./pages/AuthPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ServicesPage from "./pages/ServicesPage";
+import LegalPage from "./pages/LegalPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import TermsPage from "./pages/dashboard/TermsPage";
@@ -43,7 +45,11 @@ const App = () => (
           <Route path="/blog/:id" element={<BlogPostPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/:type" element={<ServicesPage />} />
+          <Route path="/privacy" element={<LegalPage variant="privacy" />} />
+          <Route path="/terms" element={<LegalPage variant="terms" />} />
           <Route path="/dashboard" element={<Protected><DashboardHome /></Protected>} />
           <Route path="/dashboard/articles" element={<Protected><ArticlesPage /></Protected>} />
           <Route path="/dashboard/services" element={<Protected><ServicesAdminPage /></Protected>} />
