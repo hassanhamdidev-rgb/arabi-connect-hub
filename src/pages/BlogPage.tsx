@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, SITE_URL } from "@/lib/seo";
 import { useBlogs } from "@/hooks/useDirectus";
-import { assetUrl } from "@/lib/directus";
+import MediaRenderer from "@/components/MediaRenderer";
 
 const blogListLd = (posts: { id: string | number; title: string; category: string; excerpt: string }[]) => ({
   "@context": "https://schema.org",
@@ -71,7 +71,7 @@ const BlogPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post, i) => {
-                const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 800 }) : undefined;
+                const firstFile = post.files?.[0];
                 return (
                   <motion.div
                     key={post.id}
@@ -84,11 +84,13 @@ const BlogPage = () => {
                       to={`/blog/${post.slug || post.id}`}
                       className="modern-card block group h-full"
                     >
-                      <div className="h-48 gradient-teal flex items-center justify-center overflow-hidden card-sheen">
-                        {cover ? (
-                          <img src={cover} alt={post.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                      <div className="h-48 overflow-hidden card-sheen">
+                        {firstFile ? (
+                          <MediaRenderer fileId={firstFile} alt={post.name} className="h-full" />
                         ) : (
-                          <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
+                          <div className="h-full gradient-teal flex items-center justify-center">
+                            <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
+                          </div>
                         )}
                       </div>
                       <div className="p-6 relative z-10">
