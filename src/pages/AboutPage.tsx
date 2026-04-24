@@ -25,7 +25,7 @@ const AboutPage = () => {
         <div className="section-container text-center">
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-primary-foreground mb-4">من نحن</h1>
           <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-            تعرف على مكتب خالد عويد المجنوني للمحاماة والاستشارات القانونية
+             fcesdfcwesfcsv wfedsxfvrdsvتعرف على مكتب خالد عويد المجنوني للمحاماة والاستشارات القانونية
           </p>
         </div>
       </section>
