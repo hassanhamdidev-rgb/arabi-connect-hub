@@ -20,7 +20,7 @@ const CTASection = () => {
             </Button>
           </Link>
           <a href="https://wa.me/966500000000" target="_blank" rel="noopener noreferrer">
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 gap-2 text-base px-8">
+            <Button size="lg"  className="bg-accent/80 text-accent-foreground hover:bg-accent/70 gap-2 text-base px-8">
               <MessageCircle className="w-5 h-5" />
               واتساب
             </Button>

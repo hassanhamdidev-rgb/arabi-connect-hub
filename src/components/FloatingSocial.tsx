@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Phone, Plus, X } from "lucide-react";
+import { useToast } from "./ui/use-toast";
 
 const socials: Array<{ label: string; href: string; svg: JSX.Element }> = [
   {
@@ -45,7 +46,19 @@ const PHONE_DISPLAY = "+966 50 000 0000";
 
 const FloatingSocial = () => {
   const [open, setOpen] = useState(false);
+ const { toast } = useToast();
 
+ // copy phone number to clipboard and show toast, then trigger the call
+  const handleCallWithToast = () => {
+    navigator.clipboard.writeText("01129629406");
+    toast({
+      title: "تم النسخ",
+      description: "تم نسخ رقم الهاتف بنجاح",
+      duration: 2000,
+    });
+    window.location.href = "tel:+201129629406";
+    
+  };
   // Radial positions for the social icons (arc opening to the upper-right of FAB).
   // FAB sits bottom-left; icons fan out along a quarter-circle.
   // Responsive radius: larger on bigger phones, smaller on compact screens — but always
@@ -99,6 +112,7 @@ const FloatingSocial = () => {
       >
         <a
           href={`tel:${PHONE}`}
+          onClick={handleCallWithToast}
           className="group flex flex-col items-center gap-2 px-2.5 py-4 rounded-full gradient-gold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
         >
           <span className="w-10 h-10 rounded-full bg-secondary-foreground/10 flex items-center justify-center group-hover:rotate-12 transition-transform">
@@ -173,13 +187,18 @@ const FloatingSocial = () => {
       </div>
 
       {/* Mobile floating call button (right side) */}
-      <a
+
+ <a
         href={`tel:${PHONE}`}
+      onClick={handleCallWithToast}
         aria-label="اتصل بنا"
         className="md:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full gradient-gold shadow-xl flex items-center justify-center"
       >
         <Phone className="w-5 h-5 text-secondary-foreground" />
       </a>
+
+
+     
     </>
   );
 };

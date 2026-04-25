@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,26 +8,62 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Eye, Loader2 } from "lucide-react";
-import { useBlogs, useSaveBlog, useDeleteBlog } from "@/hooks/useDirectus";
-import type { Blog } from "@/lib/directus";
+import { Plus, Search, Edit, Trash2, Eye, Loader2, LayoutGrid, Table2 } from "lucide-react";
+import { useBlogs, useSaveBlog, useDeleteBlog, useCategories } from "@/hooks/useDirectus";
+import { uploadFiles, type Blog } from "@/lib/directus";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+
+const READING_TIME_OPTIONS = [
+  { value: 5, labelAr: "5 دقائق", labelEn: "5 min" },
+  { value: 10, labelAr: "10 دقائق", labelEn: "10 min" },
+  { value: 15, labelAr: "15 دقيقة", labelEn: "15 min" },
+  { value: 20, labelAr: "20 دقيقة", labelEn: "20 min" },
+  { value: 30, labelAr: "30 دقيقة", labelEn: "30 min" },
+];
+
+const isUuid = (value?: string | null) =>
+  Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
 
 const ArticlesPage = () => {
   const { data: articles = [], isLoading } = useBlogs();
+  const { data: categories = [] } = useCategories();
   const saveMut = useSaveBlog();
   const delMut = useDeleteBlog();
+  const { user } = useAuth();
 
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Blog | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Blog | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [contentHtml, setContentHtml] = useState("");
+  const editorRef = useRef<HTMLDivElement>(null);
+  const blogCategories = categories.filter((item) => item.type?.toLowerCase() === "blog");
 
   const filtered = articles.filter((a) =>
     a.name?.includes(search) || a.category?.includes(search)
   );
 
-  const openNew = () => { setEditing(null); setOpen(true); };
-  const openEdit = (a: Blog) => { setEditing(a); setOpen(true); };
+  const openNew = () => {
+    setEditing(null);
+    setSelectedFiles([]);
+    setContentHtml("");
+    setOpen(true);
+  };
+  const openEdit = (a: Blog) => {
+    setEditing(a);
+    setSelectedFiles([]);
+    setContentHtml(a.content ?? "");
+    setOpen(true);
+  };
+
+  const applyFormat = (command: string, value?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, value);
+    setContentHtml(editorRef.current?.innerHTML ?? "");
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -42,19 +78,44 @@ const ArticlesPage = () => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const name = String(fd.get("title")).trim();
+    const readingTimeRaw = Number(fd.get("reading_time"));
+    const readingTime = Number.isFinite(readingTimeRaw) && readingTimeRaw > 0 ? readingTimeRaw : null;
+    const featured = fd.get("featured") === "on";
+    const authorId = isUuid(user?.id) ? user!.id : undefined;
+
+    if (selectedFiles.length > 4) {
+      toast.error("الحد الأقصى 4 ملفات");
+      return;
+    }
+
+    if (selectedFiles.some((file) => file.size > 5 * 1024 * 1024)) {
+      toast.error("حجم كل ملف يجب ألا يتجاوز 5MB");
+      return;
+    }
+
     const data: Partial<Blog> = {
       name,
       slug: name.toLowerCase().replace(/\s+/g, "-").slice(0, 80),
       category: String(fd.get("category")),
       status: fd.get("status") as "published" | "draft",
       description: String(fd.get("description") ?? ""),
-      content: String(fd.get("content") ?? ""),
-      author: String(fd.get("author") ?? "خالد المجنوني"),
+      content: contentHtml.trim(),
+      reading_time: readingTime,
+      featured,
     };
+    if (authorId) {
+      data.author = authorId;
+    }
     try {
+      if (selectedFiles.length > 0) {
+        const uploadedFileIds = await uploadFiles(selectedFiles);
+        data.files = uploadedFileIds;
+      }
+
       await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
       toast.success(editing ? "تم تحديث المقال" : "تمت إضافة المقال");
       setOpen(false);
+      setSelectedFiles([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
@@ -71,80 +132,158 @@ const ArticlesPage = () => {
       }
     >
       <Card className="p-4 mb-4">
-        <div className="relative max-w-sm">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="بحث في المقالات..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pr-9"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-sm w-full">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث في المقالات..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pr-9"
+            />
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <Button
+              type="button"
+              size="sm"
+              variant={viewMode === "table" ? "default" : "outline"}
+              onClick={() => setViewMode("table")}
+              className="gap-1.5"
+            >
+              <Table2 className="h-4 w-4" />
+              جدول
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={viewMode === "card" ? "default" : "outline"}
+              onClick={() => setViewMode("card")}
+              className="gap-1.5"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              بطاقات
+            </Button>
+          </div>
         </div>
       </Card>
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-right">العنوان</TableHead>
-              <TableHead className="text-right">التصنيف</TableHead>
-              <TableHead className="text-right">الحالة</TableHead>
-              <TableHead className="text-right">المشاهدات</TableHead>
-              <TableHead className="text-right">التاريخ</TableHead>
-              <TableHead className="text-right">إجراءات</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
-                </TableCell>
+      {viewMode === "table" ? (
+        <Card>
+          <Table >
+            <TableHeader>
+              <TableRow  className=" py-8">
+                <TableHead className="text-right">العنوان</TableHead>
+                <TableHead className="text-right">التصنيف</TableHead>
+                <TableHead className="text-right">الحالة</TableHead>
+                <TableHead className="text-right">المشاهدات</TableHead>
+                <TableHead className="text-right">التاريخ</TableHead>
+                <TableHead className="text-right">إجراءات</TableHead>
               </TableRow>
-            )}
-            {!isLoading && filtered.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium max-w-xs truncate">{a.name}</TableCell>
-                <TableCell><Badge variant="secondary">{a.category}</Badge></TableCell>
-                <TableCell>
-                  <Badge variant={a.status === "published" ? "default" : "outline"}>
-                    {a.status === "published" ? "منشور" : "مسودة"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="flex items-center gap-1 text-muted-foreground">
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 ">
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && filtered.map((a) => (
+                <TableRow key={a.id}  className=" ">
+                  <TableCell className="font-medium max-w-xs truncate ">{a.name}</TableCell>
+                  <TableCell><Badge variant="secondary">{a.category}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant={a.status === "published" ? "default" : "outline"}>
+                      {a.status === "published" ? "منشور" : "مسودة"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="flex items-center gap-1 text-muted-foreground">
+                    <Eye className="h-3.5 w-3.5" />
+                    {(a.views ?? 0).toLocaleString("ar-SA")}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {a.date_created ? new Date(a.date_created).toLocaleDateString("ar-SA") : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(a)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setPendingDelete(a)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!isLoading && filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    لا توجد مقالات
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {isLoading && (
+            <Card className="md:col-span-2 xl:col-span-3 p-8">
+              <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+            </Card>
+          )}
+          {!isLoading && filtered.map((a) => (
+            <Card key={a.id} className="p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <h3 className="font-semibold line-clamp-2">{a.name}</h3>
+                <Badge variant={a.status === "published" ? "default" : "outline"} className="shrink-0">
+                  {a.status === "published" ? "منشور" : "مسودة"}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary">{a.category}</Badge>
+                {a.featured && <Badge variant="outline">مميز</Badge>}
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {a.description || "—"}
+              </p>
+              <div className="text-xs text-muted-foreground flex items-center justify-between mb-3">
+                <span className="flex items-center gap-1">
                   <Eye className="h-3.5 w-3.5" />
                   {(a.views ?? 0).toLocaleString("ar-SA")}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {a.date_created ? new Date(a.date_created).toLocaleDateString("ar-SA") : "—"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(a)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(a.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {!isLoading && filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  لا توجد مقالات
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+                </span>
+                <span>{a.date_created ? new Date(a.date_created).toLocaleDateString("ar-SA") : "—"}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="gap-1.5 flex-1" onClick={() => openEdit(a)}>
+                  <Edit className="h-4 w-4" />
+                  تعديل
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="gap-1.5"
+                  onClick={() => setPendingDelete(a)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  حذف
+                </Button>
+              </div>
+            </Card>
+          ))}
+          {!isLoading && filtered.length === 0 && (
+            <Card className="md:col-span-2 xl:col-span-3 p-8 text-center text-muted-foreground">
+              لا توجد مقالات
+            </Card>
+          )}
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -159,7 +298,20 @@ const ArticlesPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="category">التصنيف</Label>
-                <Input id="category" name="category" defaultValue={editing?.category} required />
+                <select
+                  id="category"
+                  name="category"
+                  defaultValue={editing?.category ?? ""}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  required
+                >
+                  <option value="" disabled>اختر تصنيف المدونة</option>
+                  {blogCategories.map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status">الحالة</Label>
@@ -174,9 +326,47 @@ const ArticlesPage = () => {
                 </select>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="reading_time">مدة القراءة</Label>
+                <select
+                  id="reading_time"
+                  name="reading_time"
+                  defaultValue={editing?.reading_time ?? ""}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">اختر مدة القراءة</option>
+                  {READING_TIME_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.labelAr} ({option.labelEn})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2 flex items-end">
+                <label className="flex h-10 items-center gap-2 rounded-md border border-input px-3 text-sm w-full">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    defaultChecked={Boolean(editing?.featured)}
+                    className="h-4 w-4"
+                  />
+                  مميز
+                </label>
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="author">الكاتب</Label>
-              <Input id="author" name="author" defaultValue={editing?.author ?? "خالد المجنوني"} required />
+              <Label htmlFor="files">ملفات المقال (حد أقصى 4، كل ملف 5MB)</Label>
+              <Input
+                id="files"
+                name="files"
+                type="file"
+                multiple
+                onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))}
+              />
+              {selectedFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground">تم اختيار {selectedFiles.length} ملف</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">الوصف المختصر</Label>
@@ -184,7 +374,27 @@ const ArticlesPage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="content">المحتوى</Label>
-              <Textarea id="content" name="content" rows={6} defaultValue={editing?.content} placeholder="اكتب محتوى المقال..." />
+              <div className="rounded-md border border-input">
+                <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-muted/40">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("bold")}>B</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("italic")}><em>I</em></Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("underline")}><u>U</u></Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("insertUnorderedList")}>• List</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("insertOrderedList")}>1. List</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("formatBlock", "h2")}>H2</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => applyFormat("formatBlock", "p")}>P</Button>
+                </div>
+                <div
+                  id="content"
+                  ref={editorRef}
+                  contentEditable
+                  dir="rtl"
+                  className="min-h-[180px] p-3 text-sm focus:outline-none prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: contentHtml }}
+                  onInput={(e) => setContentHtml((e.currentTarget as HTMLDivElement).innerHTML)}
+                />
+              </div>
+              <input type="hidden" name="content" value={contentHtml} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
@@ -194,6 +404,43 @@ const ArticlesPage = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingDelete} onOpenChange={(isOpen) => !isOpen && setPendingDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>تأكيد حذف المقال</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            هل أنت متأكد من حذف المقال
+            {" "}
+            <span className="font-medium text-foreground">"{pendingDelete?.name}"</span>
+            ؟ لا يمكن التراجع عن هذه العملية.
+          </p>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingDelete(null)}
+              disabled={delMut.isPending}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={async () => {
+                if (!pendingDelete) return;
+                await handleDelete(pendingDelete.id);
+                setPendingDelete(null);
+              }}
+              disabled={delMut.isPending}
+            >
+              {delMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              تأكيد الحذف
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

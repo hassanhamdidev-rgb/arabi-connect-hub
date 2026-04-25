@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import CTASection from "@/components/landing/CTASection";
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, serviceLd } from "@/lib/seo";
 import { useServices } from "@/hooks/useDirectus";
-import { Loader2, Scale, User, Briefcase } from "lucide-react";
+import { Loader2, Scale, User, Briefcase, AlertCircle, RefreshCw, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -30,14 +31,22 @@ const ServicesPage = () => {
   const params = useParams<{ type?: string }>();
   const filter: FilterType =
     params.type === "individual" || params.type === "business" ? params.type : undefined;
+  const [displayCount, setDisplayCount] = useState(6);
 
-  const { data, isLoading } = useServices();
+  const { data, isLoading, error, isError, refetch } = useServices();
 
   const services = useMemo(() => {
     const list = (data ?? []).filter((s) => s.status === "active");
     if (!filter) return list;
     return list.filter((s) => (s.type ?? "").toLowerCase() === filter);
   }, [data, filter]);
+
+  const displayedServices = services.slice(0, displayCount);
+  const hasMore = displayCount < services.length;
+
+  const handleLoadMore = () => {
+    setDisplayCount((prev) => prev + 6);
+  };
 
   const heading = filter ? labels[filter] : {
     title: "خدماتنا القانونية",
@@ -112,13 +121,35 @@ const ServicesPage = () => {
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-6 max-w-md">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertCircle className="w-5 h-5 text-destructive" />
+                  <h3 className="font-semibold text-destructive">خطأ في تحميل الخدمات</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {error?.message || "حدث خطأ غير متوقع. يرجى المحاولة لاحقاً."}
+                </p>
+                <Button
+                  onClick={() => refetch()}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  حاول مرة أخرى
+                </Button>
+              </div>
+            </div>
           ) : services.length === 0 ? (
             <p className="text-center text-muted-foreground py-16">
               لا توجد خدمات متاحة في هذه الفئة حالياً.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service, i) => {
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedServices.map((service, i) => {
                 const IconCmp =
                   (service.icon &&
                     (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
@@ -155,7 +186,20 @@ const ServicesPage = () => {
                   </motion.div>
                 );
               })}
-            </div>
+              </div>
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <Button
+                    onClick={handleLoadMore}
+                    size="lg"
+                    className="gap-2"
+                  >
+                    تحميل المزيد من الخدمات
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

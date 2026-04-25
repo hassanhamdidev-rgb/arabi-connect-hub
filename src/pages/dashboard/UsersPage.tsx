@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Search, Ban, CheckCircle2, Shield } from "lucide-react";
+import { Plus, Search, Ban, CheckCircle2, Shield, Save } from "lucide-react";
 import { mockUsers, type AppUser } from "@/lib/mockData";
 import { toast } from "sonner";
 
@@ -111,18 +111,20 @@ const UsersPage = () => {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>إضافة مستخدم جديد</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAdd} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">الاسم الكامل</Label>
-              <Input id="name" name="name" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input id="email" name="email" type="email" required />
+          <form onSubmit={handleAdd} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="name">الاسم الكامل</Label>
+                <Input id="name" name="name" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Input id="email" name="email" type="email" required />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">الدور / الصلاحيات</Label>
@@ -132,9 +134,12 @@ const UsersPage = () => {
                 <option value="admin">مسؤول (admin)</option>
               </select>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit">إضافة</Button>
+              <Button type="submit" className="gap-2 min-w-24">
+                <Save className="h-4 w-4" />
+                حفظ
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

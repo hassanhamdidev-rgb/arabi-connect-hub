@@ -1,12 +1,19 @@
 import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
-import { Scale, Loader2 } from "lucide-react";
+import { Scale, Loader2, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useServices } from "@/hooks/useDirectus";
 
 const ServicesSection = () => {
   const { data, isLoading } = useServices();
+  const [displayCount, setDisplayCount] = useState(6);
   const services = (data ?? []).filter((s) => s.status === "active");
+  const displayedServices = services.slice(0, displayCount);
+  const hasMore = displayCount < services.length;
+
+
 
   return (
     <section className="py-20 bg-background">
@@ -28,8 +35,9 @@ const ServicesSection = () => {
         ) : services.length === 0 ? (
           <p className="text-center text-muted-foreground">لا توجد خدمات متاحة حالياً.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, i) => {
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedServices.map((service, i) => {
               const IconCmp =
                 (service.icon && (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
                 Scale;
@@ -57,7 +65,22 @@ const ServicesSection = () => {
                 </motion.div>
               );
             })}
-          </div>
+            </div>
+            {hasMore && (
+              <div className="flex justify-center mt-12">
+                <a href="services" >
+                    <Button
+                  size="lg"
+                  className="gap-2"
+                >
+                  تحميل المزيد من الخدمات
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+                </a>
+              
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

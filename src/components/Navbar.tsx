@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, LayoutDashboard, ChevronDown, User, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/assets/logo-mark.png";
+import logo from "@/assets/header-logo.jpeg";
 
 const navLinks: Array<{
   label: string;
@@ -72,7 +72,7 @@ const Navbar = () => {
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0 pr-2">
-              <img src={logo} alt="خالد عويد المجنوني" className="h-9 w-auto object-contain" />
+              <img src={logo} alt="خالد عويد المجنوني" className="h-9 w-auto object-contain rounded-full" />
               <span className="hidden sm:inline font-heading font-bold text-primary-foreground text-base">المجنوني</span>
             </Link>
 
@@ -164,24 +164,7 @@ const Navbar = () => {
                 </Link>
               ) : (
                 <>
-                  <Link to="/auth">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="rounded-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 h-9 px-4"
-                    >
-                      تسجيل الدخول
-                    </Button>
-                  </Link>
-                  <Link to="/contact">
-                    <Button
-                      size="sm"
-                      className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 h-9 px-4"
-                    >
-                      <Phone className="w-4 h-4" />
-                      احجز استشارة
-                    </Button>
-                  </Link>
+                
                 </>
               )}
             </div>
@@ -260,18 +243,7 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 ) : (
-                  <>
-                    <Link to="/auth" className="flex-1">
-                      <Button variant="outline" className="w-full rounded-full bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                        تسجيل الدخول
-                      </Button>
-                    </Link>
-                    <Link to="/contact" className="flex-1">
-                      <Button className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
-                        احجز استشارة
-                      </Button>
-                    </Link>
-                  </>
+                 <></>
                 )}
               </div>
             </div>

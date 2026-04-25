@@ -8,7 +8,7 @@ import logoMark from "@/assets/logo-mark.png";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+    <section className="relative min-h-[100vh] flex items-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <img src={heroBg} alt="" className="w-full h-full object-cover" width={1920} height={1080} />
@@ -23,9 +23,9 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <div className="flex items-center gap-2 mb-6">
-              <Scale className="w-6 h-6 text-gold" />
-              <span className="text-gold font-medium text-sm">للمحاماة والاستشارات القانونية</span>
+            <div className="flex items-center gap-2 mb-6 h-6">
+              {/* <Scale className="w-6 h-6 text-gold" /> */}
+              {/* <span className="text-gold font-medium text-sm">للمحاماة والاستشارات القانونية</span> */}
             </div>
 
             <h1 className="mb-6">
@@ -42,26 +42,22 @@ const HeroSection = () => {
             </h1>
 
             <p className="text-primary-foreground/80 text-lg leading-relaxed mb-8 max-w-lg">
-              نقدم خدمات قانونية شاملة ومتخصصة تغطي جميع المجالات القانونية بخبرة تمتد لأكثر من 15 عاماً في المملكة العربية السعودية.
+              نقدم خدمات قانونية شاملة ومتخصصة تغطي جميع المجالات القانونية بخبرة عالية  في المملكة العربية السعودية.
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link to="/contact">
+              <Link to="/services">
                 <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base px-8">
                   <Phone className="w-5 h-5" />
-                  احجز استشارة مجانية
-                </Button>
-              </Link>
-              <Link to="/services">
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base px-8">
                   تعرف على خدماتنا
                 </Button>
               </Link>
+           
             </div>
           </motion.div>
 
           {/* Stats */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
@@ -77,7 +73,7 @@ const HeroSection = () => {
                 <div className="text-primary-foreground/70 text-sm mt-1">{stat.label}</div>
               </div>
             ))}
-          </motion.div>
+          </motion.div> */}
           </div>
 
           {/* Logo Mark */}

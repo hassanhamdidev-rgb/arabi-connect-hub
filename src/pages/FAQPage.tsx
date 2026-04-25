@@ -3,10 +3,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, faqLd } from "@/lib/seo";
 import { useFaqs } from "@/hooks/useDirectus";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const FAQPage = () => {
-  const { data, isLoading } = useFaqs();
+  const { data, isLoading, error, isError, refetch } = useFaqs();
   const faqs = (data ?? []).filter((f) => f.status === "active");
 
   return (
@@ -34,10 +35,31 @@ const FAQPage = () => {
       </section>
 
       <section className="py-20 bg-background">
-        <div className="section-container max-w-3xl">
+        <div className="section-container max-w-7xl">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-6 max-w-md">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertCircle className="w-5 h-5 text-destructive" />
+                  <h3 className="font-semibold text-destructive">خطأ في تحميل الأسئلة</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {error?.message || "حدث خطأ غير متوقع. يرجى المحاولة لاحقاً."}
+                </p>
+                <Button
+                  onClick={() => refetch()}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  حاول مرة أخرى
+                </Button>
+              </div>
             </div>
           ) : faqs.length === 0 ? (
             <p className="text-center text-muted-foreground">لا توجد أسئلة متاحة حالياً.</p>

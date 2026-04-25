@@ -28,7 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo.png";
 
 const mainItems = [
   { title: "نظرة عامة", url: "/dashboard", icon: LayoutDashboard, end: true },

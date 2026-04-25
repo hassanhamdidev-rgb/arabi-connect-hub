@@ -1,17 +1,31 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useBlogs } from "@/hooks/useDirectus";
 
-const posts = [
-  { id: "1", title: "حقوقك القانونية عند الفصل التعسفي", category: "قضايا العمل", date: "15 أبريل 2026", excerpt: "تعرف على حقوقك القانونية في حالة الفصل التعسفي وكيفية المطالبة بالتعويض المناسب." },
-  { id: "2", title: "كيف تحمي حقوقك في العقود التجارية", category: "القضايا التجارية", date: "10 أبريل 2026", excerpt: "دليل شامل لأهم النقاط التي يجب مراعاتها عند توقيع العقود التجارية." },
-  { id: "3", title: "إجراءات رفع الدعوى في المحاكم السعودية", category: "إجراءات قانونية", date: "5 أبريل 2026", excerpt: "شرح مبسط للإجراءات المطلوبة لرفع دعوى قضائية في المملكة العربية السعودية." },
-];
+const formatDate = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
 
 const BlogPreview = () => {
+  const { data: blogs, isLoading } = useBlogs();
+  
+  const posts = (blogs ?? [])
+    .filter((blog) => blog.status === "published")
+    .slice(0, 3);
+
+  if (isLoading) {
+    return (
+      <section className="py-20 bg-background">
+        <div className="section-container flex items-center justify-center min-h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-20 bg-muted">
+    <section className="py-20 bg-background">
       <div className="section-container">
         <div className="flex items-center justify-between mb-14">
           <div>
@@ -37,20 +51,20 @@ const BlogPreview = () => {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
             >
-              <Link to={`/blog/${post.id}`} className="modern-card block group h-full">
+              <Link to={`/blog/${post.slug}`} className="modern-card block group h-full">
                 <div className="h-48 gradient-teal flex items-center justify-center card-sheen">
-                  <span className="text-primary-foreground/30 font-heading text-6xl font-bold">{post.id}</span>
+                  <span className="text-primary-foreground/30 font-heading text-6xl font-bold">{i + 1}</span>
                 </div>
                 <div className="p-6 relative z-10">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <span className="chip text-accent border-accent/30 bg-accent/10">{post.category}</span>
                     <span className="chip">
                       <Calendar className="w-3 h-3" />
-                      {post.date}
+                      {formatDate(post.date_created)}
                     </span>
                   </div>
-                  <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{post.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">{post.excerpt}</p>
+                  <h3 className="font-heading font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{post.name}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">{post.excerpt || post.description}</p>
                   <span className="link-btn text-sm">اقرأ المزيد <ArrowLeft className="w-4 h-4" /></span>
                 </div>
               </Link>

@@ -16,7 +16,46 @@ import {
   type Category,
 } from "@/lib/directus";
 
+
 /* ------------------------------- Blogs ----------------------------------- */
+type BlogFileInput = string | number | { directus_files_id?: string | number };
+
+function normalizeBlogPayload(input: Partial<Blog>) {
+  const systemUuidFields = ["user_created", "date_created", "date_updated"];
+  const payload: Record<string, unknown> = {};
+  const files = input.files as BlogFileInput[] | null | undefined;
+
+  // Copy over fields, excluding system-managed UUID fields
+  for (const [key, value] of Object.entries(input)) {
+    if (systemUuidFields.includes(key)) continue;
+    if (value === "") continue;
+    if (value === undefined) continue;
+    if (key !== "files") {
+      payload[key] = value;
+    }
+  }
+
+  if (Array.isArray(files) && files.length > 0) {
+    const directusFileIds = files
+      .map((file) => {
+        if (typeof file === "string" || typeof file === "number") return String(file);
+        if (file && typeof file === "object" && "directus_files_id" in file) {
+          return String(file.directus_files_id ?? "");
+        }
+        return "";
+      })
+      .filter(Boolean);
+
+    // For M2M relation (blogs_files), Directus update expects relation commands.
+    // Sending UUID array directly makes Directus treat them as junction row IDs.
+    payload.files = {
+      create: directusFileIds.map((id) => ({ directus_files_id: id })),
+    };
+  }
+
+  return payload;
+}
+
 export function useBlogs() {
   return useQuery({
     queryKey: ["blogs"],
@@ -32,10 +71,11 @@ export function useSaveBlog() {
   return useMutation({
     mutationFn: async (input: Partial<Blog> & { id?: number }) => {
       const { id, ...data } = input;
+      const normalized = normalizeBlogPayload(data);
       if (id) {
-        return await directus.request(updateItem("blogs", id, data as never));
+        return await directus.request(updateItem("blogs", id, normalized as never));
       }
-      return await directus.request(createItem("blogs", data as never));
+      return await directus.request(createItem("blogs", normalized as never));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["blogs"] }),
   });
@@ -49,7 +89,51 @@ export function useDeleteBlog() {
   });
 }
 
+export function useIncrementBlogViews() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      // Fetch the current blog to get the old views value
+      const blog = (await directus.request(
+        readItems("blogs", { filter: { id: { _eq: id } } })
+      )) as Blog[];
+      
+      if (!blog || blog.length === 0) {
+        throw new Error("Blog not found");
+      }
+
+      const currentViews = blog[0].views || 0;
+      const newViews = currentViews + 1;
+
+      // Update the blog with the new views count
+      return await directus.request(
+        updateItem("blogs", id, { views: newViews } as never)
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["blogs"] }),
+  });
+}
+
 /* ------------------------------- Services -------------------------------- */
+function normalizeServicePayload(input: Partial<Service>) {
+  const payload: Record<string, unknown> = {};
+  // System-managed UUID fields that should not be sent from client
+  const systemUuidFields = ["user_created", "date_created", "date_updated"];
+  
+  for (const [key, value] of Object.entries(input)) {
+    // Skip system-managed UUID fields
+    if (systemUuidFields.includes(key)) continue;
+    // Skip empty strings (invalid for UUID fields)
+    if (value === "") continue;
+    // Skip undefined values
+    if (value === undefined) continue;
+    // Keep all other values including null, 0, false, etc.
+    payload[key] = value;
+  }
+  
+  return payload;
+}
+
 export function useServices() {
   return useQuery({
     queryKey: ["services"],
@@ -65,8 +149,9 @@ export function useSaveService() {
   return useMutation({
     mutationFn: async (input: Partial<Service> & { id?: number }) => {
       const { id, ...data } = input;
-      if (id) return directus.request(updateItem("services", id, data as never));
-      return directus.request(createItem("services", data as never));
+      const normalized = normalizeServicePayload(data);
+      if (id) return directus.request(updateItem("services", id, normalized as never));
+      return directus.request(createItem("services", normalized as never));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["services"] }),
   });
@@ -81,6 +166,25 @@ export function useDeleteService() {
 }
 
 /* --------------------------------- FAQ ----------------------------------- */
+function normalizeFaqPayload(input: Partial<Fqa>) {
+  const payload: Record<string, unknown> = {};
+  // System-managed UUID fields that should not be sent from client
+  const systemUuidFields = ["creator", "user_created", "date_created", "date_updated"];
+  
+  for (const [key, value] of Object.entries(input)) {
+    // Skip system-managed UUID fields
+    if (systemUuidFields.includes(key)) continue;
+    // Skip empty strings (invalid for UUID fields)
+    if (value === "") continue;
+    // Skip undefined values
+    if (value === undefined) continue;
+    // Keep all other values including null, 0, false, etc.
+    payload[key] = value;
+  }
+  
+  return payload;
+}
+
 export function useFaqs() {
   return useQuery({
     queryKey: ["fqa"],
@@ -96,8 +200,9 @@ export function useSaveFaq() {
   return useMutation({
     mutationFn: async (input: Partial<Fqa> & { id?: number }) => {
       const { id, ...data } = input;
-      if (id) return directus.request(updateItem("fqa", id, data as never));
-      return directus.request(createItem("fqa", data as never));
+      const normalized = normalizeFaqPayload(data);
+      if (id) return directus.request(updateItem("fqa", id, normalized as never));
+      return directus.request(createItem("fqa", normalized as never));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["fqa"] }),
   });

@@ -1,3 +1,5 @@
+// removed from the original code to avoid confusion with the new code snippet
+
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 

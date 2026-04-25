@@ -36,7 +36,6 @@ const FAQAdminPage = () => {
       answer: String(fd.get("answer")),
       category: String(fd.get("category") ?? "عام"),
       icon: String(fd.get("icon") ?? "HelpCircle"),
-      creator: String(fd.get("creator") ?? "خالد المجنوني"),
       meta_title: String(fd.get("question")).slice(0, 60),
       meta_description: String(fd.get("answer")).slice(0, 160),
       tl_dr: String(fd.get("answer")).slice(0, 200),
@@ -94,11 +93,11 @@ const FAQAdminPage = () => {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "تعديل السؤال" : "سؤال جديد"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="question">السؤال</Label>
               <Input id="question" name="question" defaultValue={editing?.question} required />
@@ -117,9 +116,9 @@ const FAQAdminPage = () => {
                 <Input id="icon" name="icon" defaultValue={editing?.icon ?? "HelpCircle"} />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit" disabled={saveMut.isPending}>
+              <Button type="submit" disabled={saveMut.isPending} className="gap-2 min-w-24">
                 {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 حفظ
               </Button>

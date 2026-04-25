@@ -1,6 +1,6 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Calendar, User, ArrowRight, Share2, MessageCircle, Loader2 } from "lucide-react";
+import { Calendar, User, ArrowRight, Share2, MessageCircle, Loader2, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,17 +12,30 @@ import {
 } from "@/components/ui/carousel";
 import SEO from "@/components/SEO";
 import { articleLd, breadcrumbsLd } from "@/lib/seo";
-import { useBlogs } from "@/hooks/useDirectus";
+import { useBlogs, useIncrementBlogViews } from "@/hooks/useDirectus";
+import { useAuth } from "@/hooks/useAuth";
 import { assetUrl } from "@/lib/directus";
 import MediaRenderer from "@/components/MediaRenderer";
+import { useEffect } from "react";
 
 const formatDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
 
 const BlogPostPage = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const { data, isLoading } = useBlogs();
+  const { mutate: incrementViews } = useIncrementBlogViews();
+  const { isAuthenticated } = useAuth();
   const posts = (data ?? []).filter((p) => p.status === "published");
+
+  const post = posts.find((p) => p.slug === slug);
+
+  // Increment views when post is loaded (only if user is authenticated)
+  useEffect(() => {
+    if (post && post.id && isAuthenticated) {
+      incrementViews(post.id);
+    }
+  }, [post?.id, isAuthenticated, incrementViews]);
 
   if (isLoading) {
     return (
@@ -34,7 +47,6 @@ const BlogPostPage = () => {
     );
   }
 
-  const post = posts.find((p) => p.slug === id || String(p.id) === id);
   if (!post) return <Navigate to="/blog" replace />;
 
   const related = posts.filter((p) => p.id !== post.id).slice(0, 5);
@@ -70,16 +82,17 @@ const BlogPostPage = () => {
           <Link to="/blog" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-6 text-sm">
             <ArrowRight className="h-4 w-4" /> العودة للمدونة
           </Link>
-          <span className="inline-block text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full font-medium mb-4">
-            {post.category}
+          <br />
+          <span className="inline-flex items-center gap-1.5 text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full font-medium mb-4">
+            <BookOpen className="h-3.5 w-3.5" />
+            نوع المدونة: {post.category}
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
+          <h1 className="font-heading text-xl sm:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
             {post.name}
           </h1>
           <div className="flex flex-wrap items-center gap-4 text-primary-foreground/80 text-sm">
-            <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> {post.author}</span>
             <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {formatDate(post.date_created)}</span>
-            {post.reading_time && <span>· {post.reading_time} د قراءة</span>}
+            {post.reading_time && <span> مدة القراءة: {post.reading_time}</span>}
           </div>
         </div>
       </section>
@@ -89,22 +102,73 @@ const BlogPostPage = () => {
           <div className="section-container">
             <Carousel opts={{ loop: true, direction: "rtl" }} className="max-w-5xl mx-auto">
               <CarouselContent>
-                {(post.files ?? []).slice(0, 6).map((fileId, i) => (
-                  <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      className="modern-card overflow-hidden"
-                    >
-                      <MediaRenderer
-                        fileId={fileId}
-                        alt={`${post.name} ${i + 1}`}
-                        className="aspect-[16/10] rounded-2xl"
-                      />
-                    </motion.div>
-                  </CarouselItem>
-                ))}
+                {(post.files ?? []).slice(0, 6).map((fileId, i) => {
+                  const fileUrl = assetUrl(String(fileId));
+                  const fileExt = String(fileId).split('.').pop()?.toLowerCase() || '';
+                  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                  const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(fileExt);
+                  const isAudio = ['mp3', 'wav', 'ogg', 'm4a'].includes(fileExt);
+
+                  return (
+                    <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="modern-card overflow-hidden"
+                      >
+                        {isImage && (
+                          <img
+                            src={fileUrl}
+                            alt={`${post.name} ${i + 1}`}
+                            className="w-full aspect-[16/10] object-cover rounded-2xl"
+                            loading="lazy"
+                          />
+                        )}
+                        {isVideo && (
+                          <video
+                            src={fileUrl}
+                            controls
+                            className="w-full aspect-[16/10] rounded-2xl bg-black"
+                          />
+                        )}
+                        {isAudio && (
+                          <div className="bg-gradient-to-br from-primary to-accent rounded-2xl p-8 aspect-[16/10] flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M18.285 1.993a.75.75 0 00-1.04.177c-1.37 1.873-2.72 3.795-3.8 5.633-1.056 1.797-1.844 3.483-2.222 4.871-.378-1.388-1.166-3.074-2.222-4.871-1.08-1.838-2.43-3.76-3.8-5.633a.75.75 0 10-1.217.863c1.34 1.828 2.636 3.642 3.668 5.398.957 1.636 1.69 3.179 2.121 4.55.352-1.25.97-2.702 1.831-4.246 1.077-1.85 2.397-3.76 3.73-5.578a.75.75 0 00-.176-1.041zM10 9.5c-2.485 0-4.5 2.015-4.5 4.5s2.015 4.5 4.5 4.5 4.5-2.015 4.5-4.5-2.015-4.5-4.5-4.5z" />
+                                </svg>
+                              </div>
+                              <audio
+                                src={fileUrl}
+                                controls
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {!isImage && !isVideo && !isAudio && (
+                          <div className="bg-muted rounded-2xl p-8 aspect-[16/10] flex items-center justify-center flex-col gap-4">
+                            <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <a
+                              href={fileUrl}
+                              download
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v6m0 0v2m0-2h2m-2 0H2m16-6v6m0 0v2m0-2h2m-2 0h-2M4 12a8 8 0 018-8m8 8a8 8 0 01-8 8m0-16a8 8 0 018 8m-8-8a8 8 0 00-8 8m0 0H2m20 0h2" />
+                              </svg>
+                              تحميل الملف
+                            </a>
+                          </div>
+                        )}
+                      </motion.div>
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <CarouselPrevious className="hidden sm:flex" />
               <CarouselNext className="hidden sm:flex" />
@@ -114,10 +178,31 @@ const BlogPostPage = () => {
       )}
 
       <section className="py-12 bg-background">
-        <div className="section-container max-w-3xl">
+        <div className="section-container ">
+          {/* {(post.excerpt || post.description) && (
+            <div className="modern-card rounded-xl p-6 mb-8 border-r-4 border-primary bg-gradient-to-br from-primary/5 to-accent/5">
+              <div className="text-xs font-bold text-primary mb-2 uppercase tracking-wider">وصف المقال</div>
+              <p className="text-foreground text-base leading-relaxed font-medium">{post.excerpt || post.description}</p>
+            </div>
+          )} */}
+          {(post.excerpt || post.description) && (
+  <div className="relative mb-8 pr-6 py-5 rounded-lg bg-muted/40 border-r-4 border-primary shadow-sm hover:shadow-md transition">
+    
+    {/* subtle accent line glow */}
+    <span className="absolute right-0 top-0 h-full w-1 bg-primary/60 rounded-r-lg border-r-orange-200"></span>
+
+    <div className="text-xs font-semibold text-primary mb-2 tracking-wide">
+      وصف المقال
+    </div>
+
+    <p className="text-foreground/90 text-base leading-relaxed">
+      {post.excerpt || post.description}
+    </p>
+  </div>
+)}
           {post.tl_dr && (
             <div className="glass-card rounded-xl p-5 mb-8 border-r-4 border-accent">
-              <div className="text-xs font-bold text-accent mb-1">باختصار</div>
+              <div className="text-xs font-bold text-accent mb-1">ملخص المدونة</div>
               <p className="text-foreground text-sm leading-relaxed">{post.tl_dr}</p>
             </div>
           )}
@@ -130,9 +215,31 @@ const BlogPostPage = () => {
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Share2 className="h-4 w-4" /> شارك المقال:
             </span>
-            <Button variant="outline" size="sm">فيسبوك</Button>
-            <Button variant="outline" size="sm">تويتر</Button>
-            <Button variant="outline" size="sm" className="gap-2"><MessageCircle className="h-4 w-4" /> واتساب</Button>
+          <a
+  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+  target="_blank"
+>
+   <Button variant="outline" size="sm">فيسبوك</Button>
+</a>
+<a
+  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.description)}`}
+  target="_blank"
+>
+   <Button variant="outline" size="sm">تويتر</Button>
+</a>
+           <a
+  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+  target="_blank"
+>
+  <Button variant="outline" size="sm">لنكدان</Button>
+</a>
+           <a
+  href={`https://wa.me/?text=${encodeURIComponent(post.description + " " + window.location.href)}`}
+  target="_blank"
+>
+              <Button variant="outline" size="sm" className="gap-2"><MessageCircle className="h-4 w-4" /> واتساب</Button>
+
+</a>
           </div>
         </div>
       </section>

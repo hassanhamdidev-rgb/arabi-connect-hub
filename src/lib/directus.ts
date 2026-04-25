@@ -217,6 +217,39 @@ export function assetUrl(
 }
 
 /* -------------------------------------------------------------------------- */
+/* File Upload Helper                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Upload files to Directus and return their IDs
+ */
+export async function uploadFiles(files: File[]): Promise<string[]> {
+  const fileIds: string[] = [];
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${DIRECTUS_URL}/files`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${file.name}`);
+    }
+
+    const data = await response.json();
+    fileIds.push(data.data.id);
+  }
+
+  return fileIds;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Re-exports                                                                  */
 /* -------------------------------------------------------------------------- */
 
