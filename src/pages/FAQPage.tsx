@@ -2,13 +2,13 @@ import Layout from "@/components/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, faqLd } from "@/lib/seo";
-import { useFaqs } from "@/hooks/useDirectus";
+import { useFaqsList } from "@/hooks/useDirectus";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const FAQPage = () => {
-  const { data, isLoading, error, isError, refetch } = useFaqs();
-  const faqs = (data ?? []).filter((f) => f.status === "active");
+  const { data, isLoading, error, isError, refetch } = useFaqsList();
+  const faqs = data ?? [];
 
   return (
     <Layout>
