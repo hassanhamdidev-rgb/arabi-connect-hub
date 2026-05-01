@@ -50,7 +50,7 @@ const ServicesSection = () => {
                   transition={{ delay: i * 0.1 }}
                 >
                   <Link
-                    to="/services"
+                    to={`/service/${service.slug}`}
                     className="modern-card p-6 block group h-full"
                   >
                     <div className="relative z-10">

@@ -162,7 +162,7 @@ const ServicesPage = () => {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <Link to={`/services`} className="modern-card p-6 block group h-full">
+                    <Link to={`/service/${service.slug}`} className="modern-card p-6 block group h-full">
                       <div className="relative z-10">
                         <div className="w-14 h-14 rounded-2xl gradient-gold flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                           <IconCmp className="w-7 h-7 text-secondary-foreground" />

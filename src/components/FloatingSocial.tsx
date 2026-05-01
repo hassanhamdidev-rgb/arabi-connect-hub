@@ -1,54 +1,20 @@
 import { useState } from "react";
 import { Phone, Plus, X } from "lucide-react";
 import { useToast } from "./ui/use-toast";
-
-const socials: Array<{ label: string; href: string; svg: JSX.Element }> = [
-  {
-    label: "فيسبوك",
-    href: "https://facebook.com",
-    svg: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-        <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12Z" />
-      </svg>
-    ),
-  },
-  {
-    label: "تويتر / X",
-    href: "https://twitter.com",
-    svg: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-        <path d="M18.244 2H21l-6.52 7.45L22 22h-6.79l-4.74-6.2L4.8 22H2l7-8L2 2h6.91l4.27 5.66L18.244 2Zm-2.38 18h1.88L7.21 4H5.2l10.66 16Z" />
-      </svg>
-    ),
-  },
-  {
-    label: "لينكدإن",
-    href: "https://linkedin.com",
-    svg: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-        <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.27 2.38 4.27 5.47v6.27ZM5.34 7.43A2.06 2.06 0 1 1 5.34 3.3a2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.21 0 22.23 0Z" />
-      </svg>
-    ),
-  },
-  {
-    label: "واتساب",
-    href: "https://wa.me/966500000000",
-    svg: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-        <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37s-1.04 1.02-1.04 2.49 1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.1 4.49.71.31 1.27.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35ZM12.04 21.5h-.01a9.5 9.5 0 0 1-4.84-1.32l-.35-.21-3.6.94.96-3.5-.23-.36a9.46 9.46 0 0 1-1.45-5.07c0-5.23 4.27-9.49 9.51-9.49a9.45 9.45 0 0 1 6.72 2.78 9.43 9.43 0 0 1 2.79 6.71c-.01 5.23-4.27 9.52-9.5 9.52ZM20.52 3.45A11.42 11.42 0 0 0 12.04 0C5.74 0 .61 5.13.61 11.43c0 2.01.53 3.97 1.52 5.7L.5 24l6.99-1.83a11.4 11.4 0 0 0 5.45 1.39h.01c6.3 0 11.43-5.13 11.43-11.43 0-3.05-1.19-5.92-3.36-8.08Z" />
-      </svg>
-    ),
-  },
-];
+import { useSocialLinks } from "@/hooks/useDirectus";
+import { socialIconSvg } from "@/lib/socialIcons";
 
 const PHONE = "+966500000000";
 const PHONE_DISPLAY = "+966 50 000 0000";
 
 const FloatingSocial = () => {
   const [open, setOpen] = useState(false);
- const { toast } = useToast();
+  const { toast } = useToast();
+  const { data: socialLinks = [] } = useSocialLinks();
+  const socials = socialLinks
+    .filter((l) => l.status === "published")
+    .map((l) => ({ label: l.name, href: l.url, svg: <span className="w-4 h-4 block">{socialIconSvg(l.icon)}</span> }));
 
- // copy phone number to clipboard and show toast, then trigger the call
   const handleCallWithToast = () => {
     navigator.clipboard.writeText("01129629406");
     toast({
@@ -57,55 +23,51 @@ const FloatingSocial = () => {
       duration: 2000,
     });
     window.location.href = "tel:+201129629406";
-    
   };
-  // Radial positions for the social icons (arc opening to the upper-right of FAB).
-  // FAB sits bottom-left; icons fan out along a quarter-circle.
-  // Responsive radius: larger on bigger phones, smaller on compact screens — but always
-  // greater than the FAB radius (24px) + icon radius (20px) + gap to avoid overlap.
-  // Item size: 40px (w-10) instead of 48px so they sit comfortably along the arc.
-  const ITEM_SIZE = 40; // px (w-10 h-10)
-  const FAB_SIZE = 48;  // px (w-12 h-12)
-  // Min radius needed so item edges don't touch FAB edge (+ 8px breathing room)
-  const MIN_RADIUS = FAB_SIZE / 2 + ITEM_SIZE / 2 + 8; // = 52
-  // Scale radius with item count so a wider arc still keeps even spacing
-  const RADIUS = Math.max(MIN_RADIUS, 60 + socials.length * 6); // 4 items -> 84
+
+  const ITEM_SIZE = 40;
+  const FAB_SIZE = 48;
+  const MIN_RADIUS = FAB_SIZE / 2 + ITEM_SIZE / 2 + 8;
+  const RADIUS = Math.max(MIN_RADIUS, 60 + socials.length * 6);
   const positions = socials.map((_, i) => {
-    // Spread across ~95° starting just past straight up (-95°) toward the right (0°)
     const startDeg = -95;
     const endDeg = 0;
     const t = socials.length === 1 ? 0 : i / (socials.length - 1);
     const angle = (startDeg + (endDeg - startDeg) * t) * (Math.PI / 180);
-    const x = Math.cos(angle) * RADIUS;
-    const y = Math.sin(angle) * RADIUS;
-    return { x, y };
+    return { x: Math.cos(angle) * RADIUS, y: Math.sin(angle) * RADIUS };
   });
+
+  if (socials.length === 0) {
+    // Still render call buttons
+  }
 
   return (
     <>
       {/* Left rail — vertical socials, desktop only */}
-      <aside
-        aria-label="روابط التواصل الاجتماعي"
-        className="hidden md:flex fixed left-3 top-1/2 -translate-y-1/2 z-40 flex-col gap-2 p-2 rounded-full bg-card/70 backdrop-blur-md border border-border shadow-lg"
-      >
-        {socials.map(({ svg, label, href }) => (
-          <a
-            key={label}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            className="group relative w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all hover:scale-110"
-          >
-            {svg}
-            <span className="absolute right-full mr-2 whitespace-nowrap text-xs bg-foreground text-background px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-              {label}
-            </span>
-          </a>
-        ))}
-      </aside>
+      {socials.length > 0 && (
+        <aside
+          aria-label="روابط التواصل الاجتماعي"
+          className="hidden md:flex fixed left-3 top-1/2 -translate-y-1/2 z-40 flex-col gap-2 p-2 rounded-full bg-card/70 backdrop-blur-md border border-border shadow-lg"
+        >
+          {socials.map(({ svg, label, href }) => (
+            <a
+              key={label + href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              className="group relative w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all hover:scale-110"
+            >
+              {svg}
+              <span className="absolute right-full mr-2 whitespace-nowrap text-xs bg-foreground text-background px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                {label}
+              </span>
+            </a>
+          ))}
+        </aside>
+      )}
 
-      {/* Right rail — call CTA, desktop only */}
+      {/* Right rail — call CTA */}
       <aside
         aria-label="اتصل بنا"
         className="hidden md:flex fixed right-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2"
@@ -118,87 +80,76 @@ const FloatingSocial = () => {
           <span className="w-10 h-10 rounded-full bg-secondary-foreground/10 flex items-center justify-center group-hover:rotate-12 transition-transform">
             <Phone className="w-4 h-4 text-secondary-foreground" />
           </span>
-          <span
-            dir="ltr"
-            className="text-secondary-foreground text-[11px] font-bold tracking-tight"
-            style={{ writingMode: "vertical-rl" }}
-          >
+          <span dir="ltr" className="text-secondary-foreground text-[11px] font-bold tracking-tight" style={{ writingMode: "vertical-rl" }}>
             {PHONE_DISPLAY}
           </span>
         </a>
       </aside>
 
-      {/* Mobile — radial fan menu (socials) + call button */}
-      <div className="md:hidden fixed bottom-5 left-5 z-40">
-        {/* Backdrop when open (taps to close) */}
-        {open && (
-          <button
-            aria-label="إغلاق"
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 -z-10 bg-foreground/10 backdrop-blur-[2px] animate-fade-in"
-          />
-        )}
-
-        {/* Radial socials */}
-        <div className="relative w-12 h-12">
-          {socials.map(({ label, href, svg }, i) => {
-            const { x, y } = positions[i];
-            return (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                tabIndex={open ? 0 : -1}
-                style={{
-                  transform: open
-                    ? `translate(${x}px, ${y}px) scale(1)`
-                    : "translate(0,0) scale(0.4)",
-                  transitionDelay: open ? `${i * 40}ms` : "0ms",
-                }}
-                className={`absolute left-1 top-1 w-10 h-10 rounded-full flex items-center justify-center
-                  bg-card text-primary border border-border shadow-lg
-                  transition-all duration-300 ease-out
-                  hover:bg-accent hover:text-accent-foreground hover:scale-110
-                  ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-              >
-                {svg}
-              </a>
-            );
-          })}
-
-          {/* Center FAB toggle */}
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-label={open ? "إغلاق روابط التواصل" : "فتح روابط التواصل"}
-            className="relative w-12 h-12 rounded-full gradient-teal shadow-xl flex items-center justify-center text-primary-foreground transition-transform active:scale-95"
-          >
-            <span className={`absolute transition-all duration-300 ${open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`}>
-              <Plus className="w-5 h-5" />
-            </span>
-            <span className={`absolute transition-all duration-300 ${open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"}`}>
-              <X className="w-5 h-5" />
-            </span>
-          </button>
+      {/* Mobile — radial fan */}
+      {socials.length > 0 && (
+        <div className="md:hidden fixed bottom-5 left-5 z-40">
+          {open && (
+            <button
+              aria-label="إغلاق"
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 -z-10 bg-foreground/10 backdrop-blur-[2px] animate-fade-in"
+            />
+          )}
+          <div className="relative w-12 h-12">
+            {socials.map(({ label, href, svg }, i) => {
+              const { x, y } = positions[i];
+              return (
+                <a
+                  key={label + href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  tabIndex={open ? 0 : -1}
+                  style={{
+                    transform: open
+                      ? `translate(${x}px, ${y}px) scale(1)`
+                      : "translate(0,0) scale(0.4)",
+                    transitionDelay: open ? `${i * 40}ms` : "0ms",
+                  }}
+                  className={`absolute left-1 top-1 w-10 h-10 rounded-full flex items-center justify-center
+                    bg-card text-primary border border-border shadow-lg
+                    transition-all duration-300 ease-out
+                    hover:bg-accent hover:text-accent-foreground hover:scale-110
+                    ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+                >
+                  {svg}
+                </a>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-label={open ? "إغلاق روابط التواصل" : "فتح روابط التواصل"}
+              className="relative w-12 h-12 rounded-full gradient-teal shadow-xl flex items-center justify-center text-primary-foreground transition-transform active:scale-95"
+            >
+              <span className={`absolute transition-all duration-300 ${open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`}>
+                <Plus className="w-5 h-5" />
+              </span>
+              <span className={`absolute transition-all duration-300 ${open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"}`}>
+                <X className="w-5 h-5" />
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Mobile floating call button (right side) */}
-
- <a
+      {/* Mobile call button */}
+      <a
         href={`tel:${PHONE}`}
-      onClick={handleCallWithToast}
+        onClick={handleCallWithToast}
         aria-label="اتصل بنا"
         className="md:hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full gradient-gold shadow-xl flex items-center justify-center"
       >
         <Phone className="w-5 h-5 text-secondary-foreground" />
       </a>
-
-
-     
     </>
   );
 };

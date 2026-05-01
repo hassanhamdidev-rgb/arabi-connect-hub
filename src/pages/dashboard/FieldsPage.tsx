@@ -25,7 +25,7 @@ const READING_TIME_OPTIONS = [
 const isUuid = (value?: string | null) =>
   Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
 
-const ArticlesPage = () => {
+const FieldsPage = () => {
   const { data: articles = [], isLoading } = useBlogs();
   const { data: categories = [] } = useCategories();
   const saveMut = useSaveBlog();
@@ -474,4 +474,4 @@ const ArticlesPage = () => {
   );
 };
 
-export default ArticlesPage;
+export default FieldsPage;

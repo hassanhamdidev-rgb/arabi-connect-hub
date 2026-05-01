@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNotifications, useMarkNotification } from "@/hooks/useDirectus";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { playNotificationSound } from "@/lib/notifications";
 
 const iconMap: Record<string, typeof MessageSquare> = {
   message: MessageSquare,
@@ -14,12 +17,27 @@ const iconMap: Record<string, typeof MessageSquare> = {
 const NotificationsButton = () => {
   const { data: items = [], isLoading } = useNotifications();
   const markMut = useMarkNotification();
+  const navigate = useNavigate();
+  const previousUnreadCountRef = useRef(0);
 
   const top5 = items.slice(0, 5);
   const unread = items.filter((n) => !n.is_read).length;
 
+  // Play sound when new notifications arrive
+  useEffect(() => {
+    if (!isLoading && unread > previousUnreadCountRef.current) {
+      playNotificationSound(0.6);
+    }
+    previousUnreadCountRef.current = unread;
+  }, [unread, isLoading]);
+
   const markAll = () => {
     items.filter((n) => !n.is_read).forEach((n) => markMut.mutate(n.id));
+  };
+
+  const handleClick = (n: typeof items[number]) => {
+    if (!n.is_read) markMut.mutate(n.id);
+    if (n.url) navigate(n.url);
   };
 
   return (
@@ -57,7 +75,7 @@ const NotificationsButton = () => {
             return (
               <button
                 key={n.id}
-                onClick={() => !n.is_read && markMut.mutate(n.id)}
+                onClick={() => handleClick(n)}
                 className={cn(
                   "w-full text-right flex items-start gap-3 p-3 border-b border-border/60 hover:bg-muted/60 transition-colors",
                   !n.is_read && "bg-accent/5"

@@ -7,6 +7,7 @@ import {
   FileText,
   Briefcase,
   HelpCircle,
+  Layers,
   Users,
   Mail,
   UserCircle,
@@ -14,6 +15,10 @@ import {
   Home,
   ShieldCheck,
   Settings,
+  Link,
+  Info,
+  Share2,
+  Share
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,9 +37,13 @@ import logo from "@/assets/logo.png";
 
 const mainItems = [
   { title: "نظرة عامة", url: "/dashboard", icon: LayoutDashboard, end: true },
-  { title: "المقالات والمدونة", url: "/dashboard/articles", icon: FileText },
+  { title: "المجالات", url: "/dashboard/fields", icon: Share },
+  { title: "المنشورات", url: "/dashboard/articles", icon: FileText },
   { title: "الخدمات", url: "/dashboard/services", icon: Briefcase },
   { title: "الأسئلة الشائعة", url: "/dashboard/faq", icon: HelpCircle },
+  { title: "التصنيفات", url: "/dashboard/categories", icon: Layers },
+  { title: "الروابط", url: "/dashboard/links", icon: Link },
+  { title: "من نحن", url: "/dashboard/about", icon: Info },
 ];
 
 const manageItems = [

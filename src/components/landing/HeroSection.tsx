@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import heroBg from "@/assets/hero-bg.jpg";
 import logoName from "@/assets/logo-name.png";
 import logoMark from "@/assets/logo-mark.png";
+import titleImage from "@/assets/low-title.png";
 
 const HeroSection = () => {
   return (
@@ -27,7 +28,15 @@ const HeroSection = () => {
               {/* <Scale className="w-6 h-6 text-gold" /> */}
               {/* <span className="text-gold font-medium text-sm">للمحاماة والاستشارات القانونية</span> */}
             </div>
-
+<h3 className="mb-6 flex justify-center">
+  <img
+    src={titleImage}
+    alt="خالد عويد المجنوني للمحاماة والاستشارات القانونية"
+    className="w-38 h-38"
+    width={240}
+    height={240}
+  />
+</h3>
             <h1 className="mb-6">
               <img
                 src={logoName}

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import SEO from "@/components/SEO";
 import { z } from "zod";
 import { toast } from "sonner";
-import { DIRECTUS_URL } from "@/lib/directus";
+import { requestPasswordReset } from "@/lib/auth";
 import logo from "@/assets/logo-mark.png";
 
 const schema = z.object({
@@ -27,18 +27,7 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${DIRECTUS_URL}/auth/password/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: parsed.data.email,
-          reset_url: `${window.location.origin}/auth`,
-        }),
-      });
-      // Directus returns 204 even for unknown emails (security best practice)
-      if (!res.ok && res.status !== 204) {
-        throw new Error("تعذّر إرسال رابط الاستعادة");
-      }
+      await requestPasswordReset(parsed.data.email);
       setSent(true);
       toast.success("تم إرسال رابط الاستعادة إن كان البريد مسجلاً");
     } catch (err) {

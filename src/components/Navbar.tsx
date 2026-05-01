@@ -20,7 +20,8 @@ const navLinks: Array<{
       { label: "أعمال", path: "/services/business", icon: Briefcase, desc: "خدمات قانونية للشركات" },
     ],
   },
-  { label: "المدونة", path: "/blog" },
+  { label: "المنشورات", path: "/blog" },
+  { label: "المجالات", path: "/fields" },
   { label: "الأسئلة الشائعة", path: "/faq" },
   { label: "تواصل معنا", path: "/contact" },
 ];

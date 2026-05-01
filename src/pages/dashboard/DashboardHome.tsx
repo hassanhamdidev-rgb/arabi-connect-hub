@@ -71,7 +71,7 @@ const DashboardHome = () => {
         ))}
       </div>
 
-      <StatsCharts />
+      <StatsCharts blogs={blogs} messages={messages} services={services} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
@@ -89,7 +89,11 @@ const DashboardHome = () => {
               <p className="text-sm text-muted-foreground text-center py-4">لا توجد مقالات بعد</p>
             )}
             {topArticles.map((a, i) => (
-              <div key={a.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+              <Link
+                key={a.id}
+                to={`/blog/${a.slug}`}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+              >
                 <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">
                   {i + 1}
                 </div>
@@ -103,7 +107,7 @@ const DashboardHome = () => {
                   <Eye className="h-3.5 w-3.5" />
                   {(a.views ?? 0).toLocaleString("ar-SA")}
                 </div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -123,7 +127,11 @@ const DashboardHome = () => {
               <p className="text-sm text-muted-foreground text-center py-4">لا توجد رسائل</p>
             )}
             {recentMessages.map((m) => (
-              <div key={m.id} className="p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
+              <Link
+                key={m.id}
+                to="/dashboard/messages"
+                className="block p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/30 transition-colors"
+              >
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <span className="font-medium text-sm">{m.name}</span>
                   {!m.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0 mt-1.5" />}
@@ -132,7 +140,7 @@ const DashboardHome = () => {
                 <div className="text-xs text-muted-foreground/70 mt-1">
                   {m.date_created ? new Date(m.date_created).toLocaleString("ar-SA") : ""}
                 </div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>

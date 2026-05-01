@@ -17,24 +17,27 @@ const UsersPage = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
-  const filtered = users.filter(u => u.name.includes(search) || u.email.includes(search));
+  const filtered = users.filter((u) => u.name.includes(search) || u.email.includes(search));
 
   const toggleStatus = (id: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: u.status === "active" ? "blocked" : "active" } : u));
+    setUsers(users.map((u) => (u.id === id ? { ...u, status: u.status === "active" ? "blocked" : "active" } : u)));
     toast.success("تم تحديث الحالة");
   };
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    setUsers([...users, {
-      id: String(Date.now()),
-      name: String(fd.get("name")),
-      email: String(fd.get("email")),
-      role: String(fd.get("role")) as "admin" | "user",
-      status: "active",
-      joined: "اليوم",
-    }]);
+    setUsers([
+      ...users,
+      {
+        id: String(Date.now()),
+        name: String(fd.get("name")),
+        email: String(fd.get("email")),
+        role: String(fd.get("role")) as "admin" | "user",
+        status: "active",
+        joined: "اليوم",
+      },
+    ]);
     toast.success("تمت إضافة المستخدم");
     setOpen(false);
   };
@@ -49,10 +52,16 @@ const UsersPage = () => {
         </Button>
       }
     >
-      <Card className="p-4 mb-4">
+      {/* All page content commented out */}
+      {/* <Card className="p-4 mb-4">
         <div className="relative max-w-sm">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="بحث بالاسم أو البريد..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9" />
+          <Input
+            placeholder="بحث بالاسم أو البريد..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pr-9"
+          />
         </div>
       </Card>
 
@@ -89,8 +98,10 @@ const UsersPage = () => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={u.status === "active" ? "outline" : "destructive"}
-                    className={u.status === "active" ? "border-green-500 text-green-700" : ""}>
+                  <Badge
+                    variant={u.status === "active" ? "outline" : "destructive"}
+                    className={u.status === "active" ? "border-green-500 text-green-700" : ""}
+                  >
                     {u.status === "active" ? "نشط" : "محظور"}
                   </Badge>
                 </TableCell>
@@ -98,9 +109,13 @@ const UsersPage = () => {
                 <TableCell>
                   <Button size="sm" variant="outline" onClick={() => toggleStatus(u.id)} className="gap-1">
                     {u.status === "active" ? (
-                      <><Ban className="h-3.5 w-3.5" /> حظر</>
+                      <>
+                        <Ban className="h-3.5 w-3.5" /> حظر
+                      </>
                     ) : (
-                      <><CheckCircle2 className="h-3.5 w-3.5" /> تفعيل</>
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5" /> تفعيل
+                      </>
                     )}
                   </Button>
                 </TableCell>
@@ -111,39 +126,59 @@ const UsersPage = () => {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>إضافة مستخدم جديد</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAdd} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <DialogContent className="sm:max-w-xl max-h-[92vh] overflow-y-auto p-0">
+          <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                  <Plus className="h-4 w-4" />
+                </span>
+                إضافة مستخدم جديد
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                أدخل بيانات المستخدم وحدد صلاحياته
+              </p>
+            </DialogHeader>
+          </div>
+          <form onSubmit={handleAdd} className="p-6 space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">الاسم الكامل</Label>
-                <Input id="name" name="name" required />
+                <Input id="name" name="name" required className="h-11" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input id="email" name="email" type="email" required />
+                <Input id="email" name="email" type="email" required className="h-11" dir="ltr" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">الدور / الصلاحيات</Label>
-              <select id="role" name="role" defaultValue="user"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select
+                id="role"
+                name="role"
+                defaultValue="user"
+                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 <option value="user">مستخدم عادي</option>
                 <option value="admin">مسؤول (admin)</option>
               </select>
             </div>
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit" className="gap-2 min-w-24">
+            <DialogFooter className="pt-4 border-t border-border -mx-6 px-6">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11">
+                إلغاء
+              </Button>
+              <Button type="submit" className="gap-2 min-w-32 h-11">
                 <Save className="h-4 w-4" />
-                حفظ
+                حفظ المستخدم
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
+
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <h1 className="text-4xl font-bold text-center text-muted-foreground">سيأتي قريبا</h1>
+      </div>
     </DashboardLayout>
   );
 };

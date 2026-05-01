@@ -9,12 +9,18 @@ import {
   deleteItem,
   type Blog,
   type Service,
-  type Fqa,
+  type Faq,
   type ContactMessage,
   type Notification,
   type TermsAndPolicies,
   type Category,
+  type Field,
+  type About,
+  type SocialLinkRow,
 } from "@/lib/directus";
+
+/** Re-export for legacy imports */
+export type SocialLink = SocialLinkRow;
 
 
 /* ------------------------------- Blogs ----------------------------------- */
@@ -61,7 +67,7 @@ export function useBlogs() {
     queryKey: ["blogs"],
     queryFn: async () =>
       (await directus.request(
-        readItems("blogs", { sort: ["-date_created"], limit: -1 })
+        readItems("blogs", { sort: ["-id"], limit: -1 })
       )) as Blog[],
   });
 }
@@ -166,7 +172,7 @@ export function useDeleteService() {
 }
 
 /* --------------------------------- FAQ ----------------------------------- */
-function normalizeFaqPayload(input: Partial<Fqa>) {
+function normalizeFaqPayload(input: Partial<Faq>) {
   const payload: Record<string, unknown> = {};
   // System-managed UUID fields that should not be sent from client
   const systemUuidFields = ["creator", "user_created", "date_created", "date_updated"];
@@ -187,32 +193,32 @@ function normalizeFaqPayload(input: Partial<Fqa>) {
 
 export function useFaqs() {
   return useQuery({
-    queryKey: ["fqa"],
+    queryKey: ["faqs"],
     queryFn: async () =>
       (await directus.request(
-        readItems("fqa", { sort: ["sort", "-id"], limit: -1 })
-      )) as Fqa[],
+        readItems("faqs", { sort: ["sort", "-id"], limit: -1 })
+      )) as Faq[],
   });
 }
 
 export function useSaveFaq() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Partial<Fqa> & { id?: number }) => {
+    mutationFn: async (input: Partial<Faq> & { id?: number }) => {
       const { id, ...data } = input;
       const normalized = normalizeFaqPayload(data);
-      if (id) return directus.request(updateItem("fqa", id, normalized as never));
-      return directus.request(createItem("fqa", normalized as never));
+      if (id) return directus.request(updateItem("faqs", id, normalized as never));
+      return directus.request(createItem("faqs", normalized as never));
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["fqa"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["faqs"] }),
   });
 }
 
 export function useDeleteFaq() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: number) => directus.request(deleteItem("fqa", id)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["fqa"] }),
+    mutationFn: async (id: number) => directus.request(deleteItem("faqs", id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["faqs"] }),
   });
 }
 
@@ -223,7 +229,7 @@ export function useContactMessages() {
     queryFn: async () =>
       (await directus.request(
         readItems("contact_messages", {
-          sort: ["-date_created"],
+          sort: ["-id"],
           limit: -1,
         })
       )) as ContactMessage[],
@@ -254,7 +260,7 @@ export function useNotifications() {
     queryKey: ["notifications"],
     queryFn: async () =>
       (await directus.request(
-        readItems("notifications", { sort: ["-date_created"], limit: 20 })
+        readItems("notifications", { sort: ["-id"], limit: 20 })
       )) as Notification[],
   });
 }
@@ -299,5 +305,361 @@ export function useCategories() {
       (await directus.request(
         readItems("categories", { sort: ["sort", "-id"], limit: -1 })
       )) as Category[],
+  });
+}
+
+export function useSaveCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<Category> & { id?: number }) => {
+      const { id, ...data } = input;
+      const normalized = normalizeCategoryPayload(data);
+      if (id) return directus.request(updateItem("categories", id, normalized as never));
+      return directus.request(createItem("categories", normalized as never));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => directus.request(deleteItem("categories", id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
+
+function normalizeCategoryPayload(input: Partial<Category>) {
+  const payload: Record<string, unknown> = {};
+  const systemUuidFields = ["user_created", "date_created", "date_updated"];
+  
+  for (const [key, value] of Object.entries(input)) {
+    if (systemUuidFields.includes(key)) continue;
+    if (value === "") continue;
+    if (value === undefined) continue;
+    payload[key] = value;
+  }
+  
+  return payload;
+}
+
+/* ------------------------------- Social Links ----------------------------- */
+function normalizeSocialLinkPayload(input: Partial<SocialLinkRow>) {
+  const payload: Record<string, unknown> = {};
+  const systemUuidFields = ["user_created", "date_created", "user_updated", "date_updated"];
+  for (const [key, value] of Object.entries(input)) {
+    if (systemUuidFields.includes(key)) continue;
+    if (value === "") continue;
+    if (value === undefined) continue;
+    payload[key] = value;
+  }
+  return payload;
+}
+
+export function useSocialLinks() {
+  return useQuery({
+    queryKey: ["social_links"],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("social_link", { sort: ["sort", "-id"], limit: -1 })
+      )) as SocialLinkRow[],
+  });
+}
+
+export function useSaveSocialLink() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<SocialLinkRow> & { id?: number }) => {
+      const { id, ...data } = input;
+      const normalized = normalizeSocialLinkPayload(data);
+      if (id) return directus.request(updateItem("social_link", id, normalized as never));
+      return directus.request(createItem("social_link", normalized as never));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["social_links"] }),
+  });
+}
+
+export function useDeleteSocialLink() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => directus.request(deleteItem("social_link", id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["social_links"] }),
+  });
+}
+
+/* ---------------------------------- Fields -------------------------------- */
+function normalizeFieldPayload(input: Partial<Field>) {
+  const payload: Record<string, unknown> = {};
+  const systemUuidFields = ["user_created", "date_created", "user_updated", "date_updated"];
+  for (const [key, value] of Object.entries(input)) {
+    if (systemUuidFields.includes(key)) continue;
+    if (value === "") continue;
+    if (value === undefined) continue;
+    payload[key] = value;
+  }
+  return payload;
+}
+
+export function useFields() {
+  return useQuery({
+    queryKey: ["fields"],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("fields", { sort: ["sort", "-id"], limit: -1 })
+      )) as Field[],
+  });
+}
+
+export function useSaveField() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<Field> & { id?: number }) => {
+      const { id, ...data } = input;
+      const normalized = normalizeFieldPayload(data);
+      if (id) return directus.request(updateItem("fields", id, normalized as never));
+      return directus.request(createItem("fields", normalized as never));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["fields"] }),
+  });
+}
+
+export function useDeleteField() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => directus.request(deleteItem("fields", id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["fields"] }),
+  });
+}
+
+/* ---------------------------------- About --------------------------------- */
+type AboutImageInput = string | number | { directus_files_id?: string | number };
+
+function normalizeAboutPayload(input: Partial<About>) {
+  const payload: Record<string, unknown> = {};
+  const systemUuidFields = ["user_created", "date_created", "user_updated", "date_updated", "id"];
+  const images = input.images as AboutImageInput[] | null | undefined;
+
+  // Copy over fields, excluding system-managed UUID fields
+  for (const [key, value] of Object.entries(input)) {
+    if (systemUuidFields.includes(key)) continue;
+    if (value === undefined) continue;
+    if (key !== "images") {
+      payload[key] = value;
+    }
+  }
+
+  // Handle images M2M relationship
+  if (Array.isArray(images) && images.length > 0) {
+    const directusFileIds = images
+      .map((img) => {
+        if (typeof img === "string" || typeof img === "number") return String(img);
+        if (img && typeof img === "object" && "directus_files_id" in img) {
+          return String(img.directus_files_id ?? "");
+        }
+        return "";
+      })
+      .filter(Boolean);
+
+    // For M2M relation, Directus expects relation commands
+    payload.images = {
+      create: directusFileIds.map((id) => ({ directus_files_id: id })),
+    };
+  } else {
+    // Clear images if empty array
+    payload.images = { create: [] };
+  }
+
+  return payload;
+}
+
+export function useAbout() {
+  return useQuery({
+    queryKey: ["about"],
+    queryFn: async () => {
+      try {
+        return (await directus.request(readSingleton("about"))) as About;
+      } catch (e) {
+        // If the singleton isn't configured, fall back to first item
+        const list = (await directus.request(
+          readItems("about" as never, { limit: 1 } as never)
+        )) as About[];
+        return (list?.[0] ?? null) as About | null;
+      }
+    },
+  });
+}
+
+export function useSaveAbout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<About>) => {
+      const normalized = normalizeAboutPayload(data);
+      return directus.request(updateSingleton("about", normalized as never));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["about"] }),
+  });
+}
+
+/* ----------------------- Pagination & Filtering ----------------------- */
+
+export interface PaginationParams {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+  type?: string;
+}
+
+/**
+ * Paginated blogs with optional filtering
+ */
+export function useBlogsPaginated(params?: PaginationParams) {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const filters: Record<string, unknown> = {};
+
+  if (params?.search) {
+    filters["_or"] = [
+      { name: { _contains: params.search } },
+      { description: { _contains: params.search } },
+    ];
+  }
+  if (params?.category) filters["category"] = { _eq: params.category };
+  if (params?.status) filters["status"] = { _eq: params.status };
+
+  return useQuery({
+    queryKey: ["blogs-paginated", limit, offset, params?.search, params?.category, params?.status],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("blogs", {
+          sort: ["-id"],
+          limit,
+          offset,
+          ...(Object.keys(filters).length > 0 && { filter: filters }),
+        })
+      )) as Blog[],
+  });
+}
+
+/**
+ * Paginated FAQs with optional filtering
+ */
+export function useFaqsPaginated(params?: PaginationParams) {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const filters: Record<string, unknown> = {};
+
+  if (params?.search) {
+    filters["_or"] = [
+      { question: { _contains: params.search } },
+      { answer: { _contains: params.search } },
+    ];
+  }
+  if (params?.category) filters["category"] = { _eq: params.category };
+
+  return useQuery({
+    queryKey: ["faqs-paginated", limit, offset, params?.search, params?.category],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("faqs", {
+          sort: ["-id"],
+          limit,
+          offset,
+          ...(Object.keys(filters).length > 0 && { filter: filters }),
+        })
+      )) as Faq[],
+  });
+}
+
+/**
+ * Paginated services with optional filtering
+ */
+export function useServicesPaginated(params?: PaginationParams) {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const filters: Record<string, unknown> = {};
+
+  if (params?.search) {
+    filters["_or"] = [
+      { name: { _contains: params.search } },
+      { description: { _contains: params.search } },
+    ];
+  }
+  if (params?.category) filters["category"] = { _eq: params.category };
+  if (params?.status) filters["status"] = { _eq: params.status };
+
+  return useQuery({
+    queryKey: ["services-paginated", limit, offset, params?.search, params?.category, params?.status],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("services", {
+          sort: ["-id"],
+          limit,
+          offset,
+          ...(Object.keys(filters).length > 0 && { filter: filters }),
+        })
+      )) as Service[],
+  });
+}
+
+/**
+ * Paginated categories with optional filtering
+ */
+export function useCategoriesPaginated(params?: PaginationParams) {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const filters: Record<string, unknown> = {};
+
+  if (params?.search) {
+    filters["_or"] = [
+      { name: { _contains: params.search } },
+      { description: { _contains: params.search } },
+    ];
+  }
+  if (params?.type) filters["type"] = { _eq: params.type };
+
+  return useQuery({
+    queryKey: ["categories-paginated", limit, offset, params?.search, params?.type],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("categories", {
+          sort: ["-id"],
+          limit,
+          offset,
+          ...(Object.keys(filters).length > 0 && { filter: filters }),
+        })
+      )) as Category[],
+  });
+}
+
+/**
+ * Paginated contact messages with optional filtering
+ */
+export function useContactMessagesPaginated(params?: PaginationParams) {
+  const limit = params?.limit ?? 10;
+  const offset = params?.offset ?? 0;
+  const filters: Record<string, unknown> = {};
+
+  if (params?.search) {
+    filters["_or"] = [
+      { name: { _contains: params.search } },
+      { email: { _contains: params.search } },
+      { message: { _contains: params.search } },
+    ];
+  }
+  if (params?.status) filters["status"] = { _eq: params.status };
+
+  return useQuery({
+    queryKey: ["messages-paginated", limit, offset, params?.search, params?.status],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("contact_messages", {
+          sort: ["-id"],
+          limit,
+          offset,
+          ...(Object.keys(filters).length > 0 && { filter: filters }),
+        })
+      )) as ContactMessage[],
   });
 }

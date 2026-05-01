@@ -77,7 +77,7 @@ export interface ContactMessage {
   files?: (string | number)[] | null;
 }
 
-export interface Fqa {
+export interface Faq {
   id: number;
   status: ActivityStatus;
   sort?: number | null;
@@ -161,17 +161,72 @@ export interface TermsAndPolicies {
   status: PublishStatus;
   terms: string;
   policy: string;
+  // Some legacy code reads about-related fields here; keep optional for back-compat.
+  vision?: string | null;
+  mission?: string | null;
+  value?: string | null;
+  about_office?: string | null;
+}
+
+/** Services offered by the office (collection: `fields`) */
+export interface Field {
+  id: number;
+  status: PublishStatus;
+  sort?: number | null;
+  user_created?: string;
+  date_created?: string;
+  user_updated?: string | null;
+  date_updated?: string | null;
+  image?: string | null;
+  name: string;
+  description: string;
+  content: string;
+  type: string;
+}
+
+/** Office information (singleton: `about`) */
+export interface About {
+  id: number;
+  status: PublishStatus;
+  user_created?: string;
+  date_created?: string;
+  user_updated?: string | null;
+  date_updated?: string | null;
+  vision: string;
+  mission: string;
+  value: string;
+  about_office: string;
+  experiences: string[];
+  services: string[];
+  images?: (string | number)[] | null;
+}
+
+/** Social media link (collection: `social_link`) */
+export interface SocialLinkRow {
+  id: number;
+  status: PublishStatus;
+  sort?: number | null;
+  user_created?: string;
+  date_created?: string;
+  user_updated?: string | null;
+  date_updated?: string | null;
+  name: string;
+  url: string;
+  icon: string;
 }
 
 export interface DirectusSchema {
   blogs: Blog[];
   categories: Category[];
   contact_messages: ContactMessage[];
-  fqa: Fqa[];
+  faqs: Faq[];
   global_seo: GlobalSeo;
   notifications: Notification[];
   reports: Report[];
   services: Service[];
+  fields: Field[];
+  about: About;
+  social_link: SocialLinkRow[];
   terms_and_policies: TermsAndPolicies;
 }
 
@@ -180,11 +235,11 @@ export interface DirectusSchema {
 /* -------------------------------------------------------------------------- */
 
 export const DIRECTUS_URL =
-  import.meta.env.VITE_DIRECTUS_URL ?? "http://localhost:8055";
+  import.meta.env.VITE_DIRECTUS_URL ?? "https://low-firm-directus.ammxdv.easypanel.host";
 
 const DIRECTUS_TOKEN =
   import.meta.env.VITE_DIRECTUS_TOKEN ??
-  "EWIUXxRrXZgz2VgpSLXv7-jRdIk2hQNj";
+  "-t2hsJ-_nAUG6gSsn_fRA-UzuxcXu807";
 
 /**
  * Singleton Directus client authenticated with a static Bearer token.

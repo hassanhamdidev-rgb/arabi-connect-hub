@@ -14,3 +14,19 @@ export const initialNotifications: AppNotification[] = [
   { id: "4", title: "تحديث النظام", body: "تم تحديث صلاحيات المسؤول بنجاح", type: "system", date: "أمس", read: true },
   { id: "5", title: "رسالة جديدة", body: "ريم العنزي طلبت موعد استشارة", type: "message", date: "أمس", read: true },
 ];
+
+/**
+ * Plays a notification sound
+ * @param volume - Volume level (0-1)
+ */
+export function playNotificationSound(volume: number = 0.5): void {
+  try {
+    const audio = new Audio("/notification-sound.mp3");
+    audio.volume = Math.max(0, Math.min(1, volume));
+    audio.play().catch((error) => {
+      console.debug("Notification sound could not be played:", error);
+    });
+  } catch (error) {
+    console.debug("Error playing notification sound:", error);
+  }
+}

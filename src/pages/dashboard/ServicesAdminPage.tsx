@@ -79,6 +79,7 @@ const ServicesAdminPage = () => {
         </Button>
       }
     >
+      
       {isLoading && (
         <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -126,44 +127,73 @@ const ServicesAdminPage = () => {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editing ? "تعديل الخدمة" : "خدمة جديدة"}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="title">عنوان الخدمة</Label>
-              <Input id="title" name="title" defaultValue={editing?.name} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">الوصف</Label>
-              <Textarea id="description" name="description" defaultValue={editing?.description} rows={4} required />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+        <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
+          <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                  <Briefcase className="h-4 w-4" />
+                </span>
+                {editing ? "تعديل الخدمة" : "خدمة جديدة"}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                {editing ? "تحديث بيانات الخدمة وعرضها للعملاء" : "أنشئ خدمة جديدة لعرضها على الموقع"}
+              </p>
+            </DialogHeader>
+          </div>
+
+          <form onSubmit={handleSave} className="p-6 space-y-6">
+            <section className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                المعلومات الأساسية
+              </h3>
               <div className="space-y-2">
-                <Label htmlFor="icon">الأيقونة</Label>
-                <Input id="icon" name="icon" defaultValue={editing?.icon ?? "Briefcase"} />
+                <Label htmlFor="title">عنوان الخدمة</Label>
+                <Input id="title" name="title" defaultValue={editing?.name} required className="h-11" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">النوع</Label>
-                <Input id="type" name="type" defaultValue={editing?.type ?? "general"} />
+                <Label htmlFor="description">الوصف</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editing?.description}
+                  rows={4}
+                  required
+                  className="resize-none"
+                  placeholder="اشرح ما تقدمه هذه الخدمة..."
+                />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="price">السعر</Label>
-                <Input id="price" name="price" defaultValue={editing?.price} />
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-border">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                التفاصيل
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="icon">الأيقونة</Label>
+                  <Input id="icon" name="icon" defaultValue={editing?.icon ?? "Briefcase"} className="h-11" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">النوع</Label>
+                  <Input id="type" name="type" defaultValue={editing?.type ?? "general"} className="h-11" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">السعر</Label>
+                  <Input id="price" name="price" defaultValue={editing?.price} className="h-11" placeholder="مثلاً: 500 ر.س" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">المدة</Label>
+                  <Input id="duration" name="duration" defaultValue={editing?.duration} className="h-11" placeholder="مثلاً: ساعة" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="duration">المدة</Label>
-                <Input id="duration" name="duration" defaultValue={editing?.duration} />
-              </div>
-            </div>
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-              <Button type="submit" disabled={saveMut.isPending} className="gap-2 min-w-24">
-                {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                حفظ
+            </section>
+
+            <DialogFooter className="pt-4 border-t border-border -mx-6 px-6">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11">إلغاء</Button>
+              <Button type="submit" disabled={saveMut.isPending} className="gap-2 min-w-32 h-11">
+                {saveMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {editing ? "حفظ التعديلات" : "إضافة الخدمة"}
               </Button>
             </DialogFooter>
           </form>

@@ -8,6 +8,27 @@ export interface AuthUser {
   first_name?: string | null;
   last_name?: string | null;
   role?: string | null;
+  title?: string | null;
+  description?: string | null;
+  avatar?: string | null;
+  phone?: string | null;
+  gender?: string | null;
+  email_notifications?: boolean | null;
+  appearance?: string | null;
+  lang?: string | null;
+  provider?: string | null;
+}
+
+export function getAccessToken(): string | null {
+  return getSession()?.access_token ?? null;
+}
+
+export function updateStoredUser(patch: Partial<AuthUser>) {
+  const s = getSession();
+  if (!s) return;
+  const next = { ...s, user: { ...s.user, ...patch } };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event("auth-changed"));
 }
 
 interface StoredSession {
@@ -55,9 +76,10 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   const { data } = await res.json();
 
   // Fetch user profile
-  const meRes = await fetch(`${DIRECTUS_URL}/users/me?fields=id,email,first_name,last_name,role.name`, {
-    headers: { Authorization: `Bearer ${data.access_token}` },
-  });
+  const meRes = await fetch(
+    `${DIRECTUS_URL}/users/me?fields=id,email,first_name,last_name,role.name,title,description,avatar,phone,gender,email_notifications,appearance,lang,provider`,
+    { headers: { Authorization: `Bearer ${data.access_token}` } },
+  );
   const meJson = await meRes.json();
   const me = meJson.data;
   const user: AuthUser = {
@@ -66,6 +88,15 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     first_name: me.first_name,
     last_name: me.last_name,
     role: me.role?.name ?? null,
+    title: me.title,
+    description: me.description,
+    avatar: me.avatar,
+    phone: me.phone,
+    gender: me.gender,
+    email_notifications: me.email_notifications,
+    appearance: me.appearance,
+    lang: me.lang,
+    provider: me.provider,
   };
 
   persist({
@@ -92,4 +123,47 @@ export async function logout(): Promise<void> {
   }
   localStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new Event("auth-changed"));
+}
+
+/**
+ * Request password reset email for given email address
+ * Directus will send a reset link to the email
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const res = await fetch(`${DIRECTUS_URL}/auth/password/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      reset_url: `${window.location.origin}/reset-password`,
+    }),
+  });
+
+  // Directus returns 204 No Content on success, even for unknown emails (security best practice)
+  if (!res.ok && res.status !== 204) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.errors?.[0]?.message ?? "تعذّر إرسال رابط الاستعادة");
+  }
+}
+
+/**
+ * Reset password with token from email link
+ * Token comes from the reset_url query parameter
+ */
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const res = await fetch(`${DIRECTUS_URL}/auth/password/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token,
+      password,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(
+      err?.errors?.[0]?.message ?? "تعذّر إعادة تعيين كلمة المرور. قد يكون الرابط منتهي الصلاحية."
+    );
+  }
 }
