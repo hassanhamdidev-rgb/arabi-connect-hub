@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useFields } from "@/hooks/useDirectus";
+import { useFieldById, useRelatedFields } from "@/hooks/useDirectus";
 import { assetUrl } from "@/lib/directus";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -10,11 +10,8 @@ import { Button } from "@/components/ui/button";
 
 const FieldPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: items = [], isLoading, error } = useFields();
-
-  const field = items.find(
-    (s) => s.id?.toString() === slug && s.status === "published"
-  );
+  const { data: field, isLoading, error } = useFieldById(slug);
+  const { data: items = [] } = useRelatedFields(field?.id, 3);
 
   if (isLoading) {
     return (
