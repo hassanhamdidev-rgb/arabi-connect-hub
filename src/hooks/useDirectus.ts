@@ -669,8 +669,6 @@ export function useContactMessagesPaginated(params?: PaginationParams) {
 /* Public list hooks (server-side filtering + pagination + count)         */
 /* ====================================================================== */
 
-import { aggregate } from "@directus/sdk";
-
 export interface PublicListParams {
   limit?: number;
   offset?: number;
@@ -895,7 +893,7 @@ export function useFieldById(id?: string | number) {
     queryFn: async () => {
       const items = (await directus.request(
         readItems("fields", {
-          filter: { _and: [{ id: { _eq: id } }, { status: { _eq: "published" } }] },
+          filter: { _and: [{ id: { _eq: Number(id) } }, { status: { _eq: "published" } }] },
           limit: 1,
         })
       )) as Field[];
