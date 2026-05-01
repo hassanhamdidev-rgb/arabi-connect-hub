@@ -1,16 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import CTASection from "@/components/landing/CTASection";
 import SEO from "@/components/SEO";
 import { breadcrumbsLd, serviceLd } from "@/lib/seo";
-import { useServices } from "@/hooks/useDirectus";
+import { useServicesList, useServicesCount } from "@/hooks/useDirectus";
 import { Loader2, Scale, User, Briefcase, AlertCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
 import { motion } from "framer-motion";
+import type { Service } from "@/lib/directus";
 
 type FilterType = "individual" | "business" | undefined;
+
+const PAGE_SIZE = 6;
 
 const labels: Record<NonNullable<FilterType>, { title: string; tagline: string; eyebrow: string; Icon: typeof User }> = {
   individual: {
@@ -31,22 +34,36 @@ const ServicesPage = () => {
   const params = useParams<{ type?: string }>();
   const filter: FilterType =
     params.type === "individual" || params.type === "business" ? params.type : undefined;
-  const [displayCount, setDisplayCount] = useState(6);
 
-  const { data, isLoading, error, isError, refetch } = useServices();
+  const [page, setPage] = useState(1);
+  const [accumulated, setAccumulated] = useState<Service[]>([]);
 
-  const services = useMemo(() => {
-    const list = (data ?? []).filter((s) => s.status === "active");
-    if (!filter) return list;
-    return list.filter((s) => (s.type ?? "").toLowerCase() === filter);
-  }, [data, filter]);
+  // Reset when filter changes
+  useEffect(() => {
+    setPage(1);
+    setAccumulated([]);
+  }, [filter]);
 
-  const displayedServices = services.slice(0, displayCount);
-  const hasMore = displayCount < services.length;
+  const { data: pageData, isLoading, isFetching, error, isError, refetch } = useServicesList({
+    type: filter,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  });
 
-  const handleLoadMore = () => {
-    setDisplayCount((prev) => prev + 6);
-  };
+  const { data: total = 0 } = useServicesCount({ type: filter });
+
+  // Append page results
+  useEffect(() => {
+    if (!pageData) return;
+    setAccumulated((prev) => {
+      if (page === 1) return pageData;
+      const seen = new Set(prev.map((s) => s.id));
+      return [...prev, ...pageData.filter((s) => !seen.has(s.id))];
+    });
+  }, [pageData, page]);
+
+  const hasMore = accumulated.length < total;
+  const handleLoadMore = () => setPage((p) => p + 1);
 
   const heading = filter ? labels[filter] : {
     title: "خدماتنا القانونية",
@@ -92,7 +109,6 @@ const ServicesPage = () => {
           </h1>
           <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">{heading.tagline}</p>
 
-          {/* Tabs */}
           <div className="mt-8 inline-flex p-1 rounded-full bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/15 gap-1">
             {[
               { label: "الكل", to: "/services", active: !filter },
@@ -117,7 +133,7 @@ const ServicesPage = () => {
 
       <section className="py-20 bg-background">
         <div className="section-container">
-          {isLoading ? (
+          {isLoading && page === 1 ? (
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
@@ -131,71 +147,64 @@ const ServicesPage = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   {error?.message || "حدث خطأ غير متوقع. يرجى المحاولة لاحقاً."}
                 </p>
-                <Button
-                  onClick={() => refetch()}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
+                <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2">
                   <RefreshCw className="w-4 h-4" />
                   حاول مرة أخرى
                 </Button>
               </div>
             </div>
-          ) : services.length === 0 ? (
+          ) : accumulated.length === 0 ? (
             <p className="text-center text-muted-foreground py-16">
               لا توجد خدمات متاحة في هذه الفئة حالياً.
             </p>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedServices.map((service, i) => {
-                const IconCmp =
-                  (service.icon &&
-                    (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
-                  Scale;
-                return (
-                  <motion.div
-                    key={service.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <Link to={`/service/${service.slug}`} className="modern-card p-6 block group h-full">
-                      <div className="relative z-10">
-                        <div className="w-14 h-14 rounded-2xl gradient-gold flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                          <IconCmp className="w-7 h-7 text-secondary-foreground" />
+                {accumulated.map((service, i) => {
+                  const IconCmp =
+                    (service.icon &&
+                      (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
+                    Scale;
+                  return (
+                    <motion.div
+                      key={service.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: (i % PAGE_SIZE) * 0.05 }}
+                    >
+                      <Link to={`/service/${service.slug}`} className="modern-card p-6 block group h-full">
+                        <div className="relative z-10">
+                          <div className="w-14 h-14 rounded-2xl gradient-gold flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                            <IconCmp className="w-7 h-7 text-secondary-foreground" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-heading text-lg font-bold text-foreground group-hover:text-accent transition-colors">
+                              {service.name}
+                            </h3>
+                            {service.type && (
+                              <span className="chip text-[10px]">
+                                {service.type === "business" ? "أعمال" : service.type === "individual" ? "فردي" : service.type}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4">
+                            {service.description}
+                          </p>
+                          <span className="link-btn text-sm">
+                            اعرف المزيد <Scale className="w-4 h-4" />
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-heading text-lg font-bold text-foreground group-hover:text-accent transition-colors">
-                            {service.name}
-                          </h3>
-                          {service.type && (
-                            <span className="chip text-[10px]">{service.type === "business" ? "أعمال" : service.type === "individual" ? "فردي" : service.type}</span>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4">
-                          {service.description}
-                        </p>
-                        <span className="link-btn text-sm">
-                          اعرف المزيد <Scale className="w-4 h-4" />
-                        </span>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </div>
               {hasMore && (
                 <div className="flex justify-center mt-12">
-                  <Button
-                    onClick={handleLoadMore}
-                    size="lg"
-                    className="gap-2"
-                  >
+                  <Button onClick={handleLoadMore} size="lg" className="gap-2" disabled={isFetching}>
+                    {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronDown className="w-4 h-4" />}
                     تحميل المزيد من الخدمات
-                    <ChevronDown className="w-4 h-4" />
                   </Button>
                 </div>
               )}

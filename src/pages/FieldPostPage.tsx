@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useFields } from "@/hooks/useDirectus";
+import { useFieldById, useRelatedFields } from "@/hooks/useDirectus";
 import { assetUrl } from "@/lib/directus";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -10,11 +10,8 @@ import { Button } from "@/components/ui/button";
 
 const FieldPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: items = [], isLoading, error } = useFields();
-
-  const field = items.find(
-    (s) => s.id?.toString() === slug && s.status === "published"
-  );
+  const { data: field, isLoading, error } = useFieldById(slug);
+  const { data: items = [] } = useRelatedFields(field?.id, 3);
 
   if (isLoading) {
     return (
@@ -127,10 +124,7 @@ const FieldPostPage = () => {
         <div className="section-container">
           <h2 className="text-3xl font-bold text-foreground mb-12 text-center">المجالات الأخرى</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items
-              .filter((s) => s.id !== field.id && s.status === "published")
-              .slice(0, 3)
-              .map((related, index) => {
+            {items.map((related, index) => {
                 const rImg = assetUrl(related.image, { width: 600, fit: "cover" });
                 return (
                   <motion.div

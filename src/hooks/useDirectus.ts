@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { aggregate } from "@directus/sdk";
 import {
   directus,
   readItems,
@@ -661,5 +662,273 @@ export function useContactMessagesPaginated(params?: PaginationParams) {
           ...(Object.keys(filters).length > 0 && { filter: filters }),
         })
       )) as ContactMessage[],
+  });
+}
+
+/* ====================================================================== */
+/* Public list hooks (server-side filtering + pagination + count)         */
+/* ====================================================================== */
+
+export interface PublicListParams {
+  limit?: number;
+  offset?: number;
+  type?: string;       // service.type / field.type filter (e.g. individual|business)
+  category?: string;   // blog category / faq category
+  search?: string;
+}
+
+/* ---------- Blogs (public, published) ---------- */
+export function useBlogsList(params?: PublicListParams) {
+  const limit = params?.limit ?? 9;
+  const offset = params?.offset ?? 0;
+
+  const filter: Record<string, unknown> = { status: { _eq: "published" } };
+  if (params?.category) filter.category = { _eq: params.category };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+      { excerpt: { _icontains: params.search } },
+    ];
+  }
+
+  return useQuery({
+    queryKey: ["blogs-list", limit, offset, params?.category ?? null, params?.search ?? null],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("blogs", {
+          filter,
+          sort: ["-date_created", "-id"],
+          limit,
+          offset,
+        })
+      )) as Blog[],
+  });
+}
+
+export function useBlogsCount(params?: Pick<PublicListParams, "category" | "search">) {
+  const filter: Record<string, unknown> = { status: { _eq: "published" } };
+  if (params?.category) filter.category = { _eq: params.category };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+      { excerpt: { _icontains: params.search } },
+    ];
+  }
+  return useQuery({
+    queryKey: ["blogs-count", params?.category ?? null, params?.search ?? null],
+    queryFn: async () => {
+      const res = (await directus.request(
+        aggregate("blogs", { aggregate: { count: "*" }, query: { filter } })
+      )) as Array<{ count: string | number }>;
+      return Number(res?.[0]?.count ?? 0);
+    },
+  });
+}
+
+export function useBlogBySlug(slug?: string) {
+  return useQuery({
+    enabled: !!slug,
+    queryKey: ["blog-by-slug", slug],
+    queryFn: async () => {
+      const items = (await directus.request(
+        readItems("blogs", {
+          filter: { _and: [{ slug: { _eq: slug } }, { status: { _eq: "published" } }] },
+          limit: 1,
+        })
+      )) as Blog[];
+      return items[0] ?? null;
+    },
+  });
+}
+
+export function useRelatedBlogs(currentId?: number, limit = 5) {
+  return useQuery({
+    enabled: !!currentId,
+    queryKey: ["blogs-related", currentId, limit],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("blogs", {
+          filter: { _and: [{ status: { _eq: "published" } }, { id: { _neq: currentId } }] },
+          sort: ["-date_created", "-id"],
+          limit,
+        })
+      )) as Blog[],
+  });
+}
+
+/* ---------- Services (public, active) ---------- */
+export function useServicesList(params?: PublicListParams) {
+  const limit = params?.limit ?? 9;
+  const offset = params?.offset ?? 0;
+
+  const filter: Record<string, unknown> = { status: { _eq: "active" } };
+  if (params?.type) filter.type = { _eq: params.type };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+    ];
+  }
+
+  return useQuery({
+    queryKey: ["services-list", limit, offset, params?.type ?? null, params?.search ?? null],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("services", {
+          filter,
+          sort: ["sort", "-id"],
+          limit,
+          offset,
+        })
+      )) as Service[],
+  });
+}
+
+export function useServicesCount(params?: Pick<PublicListParams, "type" | "search">) {
+  const filter: Record<string, unknown> = { status: { _eq: "active" } };
+  if (params?.type) filter.type = { _eq: params.type };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+    ];
+  }
+  return useQuery({
+    queryKey: ["services-count", params?.type ?? null, params?.search ?? null],
+    queryFn: async () => {
+      const res = (await directus.request(
+        aggregate("services", { aggregate: { count: "*" }, query: { filter } })
+      )) as Array<{ count: string | number }>;
+      return Number(res?.[0]?.count ?? 0);
+    },
+  });
+}
+
+export function useServiceBySlug(slug?: string) {
+  return useQuery({
+    enabled: !!slug,
+    queryKey: ["service-by-slug", slug],
+    queryFn: async () => {
+      const items = (await directus.request(
+        readItems("services", {
+          filter: { _and: [{ slug: { _eq: slug } }, { status: { _eq: "active" } }] },
+          limit: 1,
+        })
+      )) as Service[];
+      return items[0] ?? null;
+    },
+  });
+}
+
+export function useRelatedServices(currentId?: number, type?: string, limit = 3) {
+  return useQuery({
+    enabled: !!currentId,
+    queryKey: ["services-related", currentId, type ?? null, limit],
+    queryFn: async () => {
+      const filter: Record<string, unknown> = {
+        _and: [{ status: { _eq: "active" } }, { id: { _neq: currentId } }],
+      };
+      if (type) (filter._and as unknown[]).push({ type: { _eq: type } });
+      return (await directus.request(
+        readItems("services", { filter, sort: ["sort", "-id"], limit })
+      )) as Service[];
+    },
+  });
+}
+
+/* ---------- Fields (public, published) ---------- */
+export function useFieldsList(params?: PublicListParams) {
+  const limit = params?.limit ?? 9;
+  const offset = params?.offset ?? 0;
+
+  const filter: Record<string, unknown> = { status: { _eq: "published" } };
+  if (params?.type) filter.type = { _eq: params.type };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+    ];
+  }
+
+  return useQuery({
+    queryKey: ["fields-list", limit, offset, params?.type ?? null, params?.search ?? null],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("fields", {
+          filter,
+          sort: ["sort", "-id"],
+          limit,
+          offset,
+        })
+      )) as Field[],
+  });
+}
+
+export function useFieldsCount(params?: Pick<PublicListParams, "type" | "search">) {
+  const filter: Record<string, unknown> = { status: { _eq: "published" } };
+  if (params?.type) filter.type = { _eq: params.type };
+  if (params?.search) {
+    filter._or = [
+      { name: { _icontains: params.search } },
+      { description: { _icontains: params.search } },
+    ];
+  }
+  return useQuery({
+    queryKey: ["fields-count", params?.type ?? null, params?.search ?? null],
+    queryFn: async () => {
+      const res = (await directus.request(
+        aggregate("fields", { aggregate: { count: "*" }, query: { filter } })
+      )) as Array<{ count: string | number }>;
+      return Number(res?.[0]?.count ?? 0);
+    },
+  });
+}
+
+export function useFieldById(id?: string | number) {
+  return useQuery({
+    enabled: id !== undefined && id !== null && id !== "",
+    queryKey: ["field-by-id", id],
+    queryFn: async () => {
+      const items = (await directus.request(
+        readItems("fields", {
+          filter: { _and: [{ id: { _eq: Number(id) } }, { status: { _eq: "published" } }] },
+          limit: 1,
+        })
+      )) as Field[];
+      return items[0] ?? null;
+    },
+  });
+}
+
+export function useRelatedFields(currentId?: number, limit = 3) {
+  return useQuery({
+    enabled: !!currentId,
+    queryKey: ["fields-related", currentId, limit],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("fields", {
+          filter: { _and: [{ status: { _eq: "published" } }, { id: { _neq: currentId } }] },
+          sort: ["sort", "-id"],
+          limit,
+        })
+      )) as Field[],
+  });
+}
+
+/* ---------- FAQs (public, active) ---------- */
+export function useFaqsList(params?: PublicListParams) {
+  const limit = params?.limit ?? 50;
+  const offset = params?.offset ?? 0;
+  const filter: Record<string, unknown> = { status: { _eq: "active" } };
+  if (params?.category) filter.category = { _eq: params.category };
+
+  return useQuery({
+    queryKey: ["faqs-list", limit, offset, params?.category ?? null],
+    queryFn: async () =>
+      (await directus.request(
+        readItems("faqs", { filter, sort: ["sort", "-id"], limit, offset })
+      )) as Faq[],
   });
 }

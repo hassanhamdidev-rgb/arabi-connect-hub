@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useServices } from "@/hooks/useDirectus";
+import { useServiceBySlug, useRelatedServices } from "@/hooks/useDirectus";
 import { assetUrl } from "@/lib/directus";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -16,11 +16,8 @@ import {
 
 const ServicePostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: items = [], isLoading, error } = useServices();
-
-  const service = items.find(
-    (s) => s.slug === slug && s.status === "active"
-  );
+  const { data: service, isLoading, error } = useServiceBySlug(slug);
+  const { data: items = [] } = useRelatedServices(service?.id, service?.type, 3);
 
   if (isLoading) {
     return (
@@ -221,10 +218,7 @@ const ServicePostPage = () => {
         <div className="section-container">
           <h2 className="text-3xl font-bold text-foreground mb-12 text-center">خدمات ذات صلة</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items
-              .filter((s) => s.id !== service.id && s.status === "active" && s.type === service.type)
-              .slice(0, 3)
-              .map((related, index) => {
+            {items.map((related, index) => {
                 const rImg = assetUrl(related.image, { width: 600, fit: "cover" });
                 return (
                   <motion.div

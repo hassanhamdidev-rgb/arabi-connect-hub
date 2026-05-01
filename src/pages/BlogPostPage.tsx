@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import SEO from "@/components/SEO";
 import { articleLd, breadcrumbsLd } from "@/lib/seo";
-import { useBlogs, useIncrementBlogViews } from "@/hooks/useDirectus";
+import { useBlogBySlug, useRelatedBlogs, useIncrementBlogViews } from "@/hooks/useDirectus";
 import { useAuth } from "@/hooks/useAuth";
 import { assetUrl } from "@/lib/directus";
 import MediaRenderer from "@/components/MediaRenderer";
@@ -23,12 +23,10 @@ const formatDate = (iso?: string) =>
 
 const BlogPostPage = () => {
   const { slug } = useParams();
-  const { data, isLoading } = useBlogs();
+  const { data: post, isLoading } = useBlogBySlug(slug);
+  const { data: related = [] } = useRelatedBlogs(post?.id, 5);
   const { mutate: incrementViews } = useIncrementBlogViews();
   const { isAuthenticated } = useAuth();
-  const posts = (data ?? []).filter((p) => p.status === "published");
-
-  const post = posts.find((p) => p.slug === slug);
 
   // Increment views when post is loaded (only if user is authenticated)
   useEffect(() => {
@@ -49,7 +47,6 @@ const BlogPostPage = () => {
 
   if (!post) return <Navigate to="/blog" replace />;
 
-  const related = posts.filter((p) => p.id !== post.id).slice(0, 5);
   const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 1600 }) : undefined;
 
   return (

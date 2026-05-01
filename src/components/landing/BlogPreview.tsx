@@ -2,17 +2,15 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useBlogs } from "@/hooks/useDirectus";
+import { useBlogsList } from "@/hooks/useDirectus";
 
 const formatDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : "";
 
 const BlogPreview = () => {
-  const { data: blogs, isLoading } = useBlogs();
-  
-  const posts = (blogs ?? [])
-    .filter((blog) => blog.status === "published")
-    .slice(0, 3);
+  const { data: blogs, isLoading } = useBlogsList({ limit: 3 });
+
+  const posts = blogs ?? [];
 
   if (isLoading) {
     return (
