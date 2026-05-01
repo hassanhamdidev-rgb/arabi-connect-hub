@@ -218,10 +218,7 @@ const ServicePostPage = () => {
         <div className="section-container">
           <h2 className="text-3xl font-bold text-foreground mb-12 text-center">خدمات ذات صلة</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items
-              .filter((s) => s.id !== service.id && s.status === "active" && s.type === service.type)
-              .slice(0, 3)
-              .map((related, index) => {
+            {items.map((related, index) => {
                 const rImg = assetUrl(related.image, { width: 600, fit: "cover" });
                 return (
                   <motion.div
