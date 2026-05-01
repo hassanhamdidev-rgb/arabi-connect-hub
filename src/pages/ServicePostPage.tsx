@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useServices } from "@/hooks/useDirectus";
+import { useServiceBySlug, useRelatedServices } from "@/hooks/useDirectus";
 import { assetUrl } from "@/lib/directus";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -16,11 +16,8 @@ import {
 
 const ServicePostPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: items = [], isLoading, error } = useServices();
-
-  const service = items.find(
-    (s) => s.slug === slug && s.status === "active"
-  );
+  const { data: service, isLoading, error } = useServiceBySlug(slug);
+  const { data: items = [] } = useRelatedServices(service?.id, service?.type, 3);
 
   if (isLoading) {
     return (
