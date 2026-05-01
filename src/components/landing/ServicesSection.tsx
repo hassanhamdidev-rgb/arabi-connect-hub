@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { Scale, Loader2, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useServices } from "@/hooks/useDirectus";
+import { useServicesList, useServicesCount } from "@/hooks/useDirectus";
+
+const PREVIEW_COUNT = 6;
 
 const ServicesSection = () => {
-  const { data, isLoading } = useServices();
-  const [displayCount, setDisplayCount] = useState(6);
-  const services = (data ?? []).filter((s) => s.status === "active");
-  const displayedServices = services.slice(0, displayCount);
-  const hasMore = displayCount < services.length;
+  const { data, isLoading } = useServicesList({ limit: PREVIEW_COUNT });
+  const { data: total = 0 } = useServicesCount();
+  const services = data ?? [];
+  const hasMore = total > services.length;
 
 
 
