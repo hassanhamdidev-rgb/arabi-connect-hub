@@ -37,7 +37,7 @@ const ServicesSection = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedServices.map((service, i) => {
+              {services.map((service, i) => {
               const IconCmp =
                 (service.icon && (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[service.icon]) ||
                 Scale;
