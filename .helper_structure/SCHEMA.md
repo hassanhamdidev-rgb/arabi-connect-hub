@@ -3,7 +3,7 @@
 ## Collections Overview
 
 ### Content Collections (User-Managed)
-
+xxxx
 #### 1. **blogs**
 Blog posts management collection.
 
