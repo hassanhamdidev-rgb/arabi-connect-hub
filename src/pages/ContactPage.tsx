@@ -37,7 +37,8 @@ interface Category {
 
 interface ContactMessage {
   name: string;
-  email: string;
+  receiver_email: string;
+  sender_email: string;
   phone: string;
   category: string;
   description: string;
@@ -122,6 +123,8 @@ const ContactPage = () => {
 
   // ========== FETCH CATEGORIES ON MOUNT ==========
   useEffect(() => {
+    // console.log(env.VITE_DIRECTUS_URL, env.VITE_DIRECTUS_TOKEN);
+    // console.log(env.INFO_EMAIL, env.SUPPORT_EMAIL);
     fetchCategories();
   }, []);
 
@@ -146,14 +149,14 @@ const ContactPage = () => {
 
       if (response && Array.isArray(response) && response.length > 0) {
         setCategories(response as Category[]);
-        console.log("✅ Categories loaded successfully:", response.length);
+        // console.log("✅ Categories loaded successfully:", response.length);
       } else {
-        console.warn("⚠️ No categories found, using defaults");
+        // console.warn("⚠️ No categories found, using defaults");
         setCategories(DEFAULT_CATEGORIES);
         setCategoriesError("تم استخدام الفئات الافتراضية");
       }
     } catch (error) {
-      console.error("❌ Error fetching categories:", error);
+      // console.error("❌ Error fetching categories:", error);
       
       // Use default categories on error
       setCategories(DEFAULT_CATEGORIES);
@@ -268,11 +271,11 @@ const ContactPage = () => {
       // Step 1: Upload files if any
       if (files.length > 0) {
         try {
-          console.log("📤 Uploading files...");
+          // console.log("📤 Uploading files...");
           uploadedFileIds = await uploadFiles(files);
-          console.log("✅ Files uploaded:", uploadedFileIds);
+          // console.log("✅ Files uploaded:", uploadedFileIds);
         } catch (uploadError) {
-          console.error("❌ File upload failed:", uploadError);
+          // console.error("❌ File upload failed:", uploadError);
           
           toast({
             title: "خطأ في رفع الملفات",
@@ -294,12 +297,17 @@ const ContactPage = () => {
       }));
 
       // Step 3: Create contact message
+      const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL;
+      // console.log("📧 SUPPORT_EMAIL:", supportEmail);
+      
       const contactMessageData: ContactMessage = {
         ...parsed.data,
         owner: "client",
         is_read: false,
         is_replied: false,
         status: "new",
+        sender_email: parsed.data.email,
+        receiver_email: supportEmail || "",
       };
 
       // Only add files if any were uploaded
@@ -307,13 +315,13 @@ const ContactPage = () => {
         contactMessageData.files = fileRelations;
       }
 
-      console.log("📝 Creating contact message...", contactMessageData);
+      // console.log("📝 Creating contact message...", contactMessageData);
 
       const createdMessage = await directus.request(
         createItem("contact_messages", contactMessageData as never)
       );
 
-      console.log("✅ Contact message created:", createdMessage);
+      // console.log("✅ Contact message created:", createdMessage);
 
       // Record submission for rate limiting
       recordSubmission();
@@ -341,7 +349,7 @@ const ContactPage = () => {
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
-      console.error("❌ Submission error:", error);
+      // console.error("❌ Submission error:", error);
 
       const errorMessage =
         error instanceof Error
@@ -643,8 +651,8 @@ const ContactPage = () => {
                       label: "العنوان",
                       value: "الرياض، المملكة العربية السعودية",
                     },
-                    { icon: Phone, label: "الهاتف", value: "+966 50 000 0000" },
-                    { icon: Mail, label: "البريد", value: "info@almajnouni.com" },
+                    { icon: Phone, label: "الهاتف", value: "0555518556" },
+                    { icon: Mail, label: "البريد", value: "support@lawkhalid.com" },
                   ].map((item) => (
                     <div key={item.label} className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg gradient-gold flex items-center justify-center shrink-0">

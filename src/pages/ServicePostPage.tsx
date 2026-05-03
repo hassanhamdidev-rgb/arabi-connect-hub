@@ -130,9 +130,9 @@ const ServicePostPage = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="rounded-lg overflow-hidden shadow-lg"
+              className="rounded-lg overflow-hidden shadow-lg "
             >
-              <img src={img} alt={service.name} className="w-full h-96 object-cover" />
+              <img src={img} alt={service.name} className="w-full max-h-96 object-fill" />
             </motion.div>
           </div>
         </section>
@@ -236,7 +236,7 @@ const ServicePostPage = () => {
                               src={rImg}
                               alt={related.name}
                               loading="lazy"
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full gradient-teal" />

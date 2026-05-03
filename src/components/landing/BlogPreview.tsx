@@ -29,12 +29,12 @@ const BlogPreview = () => {
           <div>
             <span className="text-accent font-medium text-sm">المدونة القانونية</span>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground mt-2">
-              أحدث المقالات
+              أحدث المنشورات
             </h2>
           </div>
           <Link to="/blog">
             <Button variant="outline" className="gap-2">
-              جميع المقالات
+              جميع المنشورات
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>

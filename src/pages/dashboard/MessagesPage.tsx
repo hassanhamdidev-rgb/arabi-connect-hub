@@ -12,6 +12,7 @@ import {
   useDeleteMessage,
 } from "@/hooks/useDirectus";
 import type { ContactMessage } from "@/lib/directus";
+import type { MessageStatus } from "@/lib/directus";
 import { toast } from "sonner";
 
 const MessagesPage = () => {
@@ -50,14 +51,52 @@ const MessagesPage = () => {
   const handleReply = async () => {
     if (!reply.trim() || !selected) return;
     try {
-      await updateMut.mutateAsync({
-        id: selected.id,
-        data: { is_replied: true, status: "replied" },
-      });
+      const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL;
+      console.log("📧 SUPPORT_EMAIL (sender):", supportEmail);
+      console.log("📧 Receiver email:", selected.sender_email);
+      
+      const updateData: Partial<ContactMessage> = { 
+        is_replied: true, 
+        status: "replied" as MessageStatus,
+      };
+      
+      console.log("📝 Update payload:", { id: selected.id, data: updateData });
+      console.log("💬 Reply text:", reply);
+      console.log("🔗 Original message ID:", selected.id);
+      
+      let result;
+      try {
+        result = await updateMut.mutateAsync({
+          id: selected.id,
+          data: updateData,
+        });
+        console.log("✅ Reply marked successfully:", result);
+      } catch (mutateError) {
+        console.error("❌ Mutation error:", mutateError);
+        
+        // Extract detailed error info
+        const errorDetails = mutateError instanceof Error ? {
+          name: mutateError.name,
+          message: mutateError.message,
+          stack: mutateError.stack,
+        } : mutateError;
+        
+        console.error("📋 Full error object:", errorDetails);
+        
+        throw new Error(
+          mutateError instanceof Error 
+            ? mutateError.message 
+            : JSON.stringify(mutateError)
+        );
+      }
+      
       toast.success("تم تسجيل الرد");
       setReply("");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "تعذر التحديث");
+      console.error("❌ Reply update error:", e);
+      const errorMessage = e instanceof Error ? e.message : "تعذر التحديث";
+      console.error("Error details:", { error: e, message: errorMessage });
+      toast.error(errorMessage);
     }
   };
 
@@ -96,8 +135,14 @@ const MessagesPage = () => {
                       <span className={`text-sm truncate ${!m.is_read ? "font-bold" : "font-medium"}`}>
                         {m.name}
                       </span>
-                      {!m.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
+                      <div className="flex gap-1 shrink-0">
+                        {!m.is_read && <span className="h-2 w-2 rounded-full bg-accent" />}
+                        <Badge variant="outline" className="h-fit text-xs px-1.5">
+                          {m.is_replied ? "✓ مجاب" : "جديد"}
+                        </Badge>
+                      </div>
                     </div>
+                    <div className="text-xs text-muted-foreground truncate mb-1">{m.sender_email}</div>
                     <div className="text-xs text-foreground truncate mb-1">{m.category}</div>
                     <div className="text-xs text-muted-foreground truncate">{m.description}</div>
                     <div className="text-xs text-muted-foreground/70 mt-1">

@@ -75,6 +75,8 @@ export interface ContactMessage {
   owner: "client" | "admin";
   ip_address_clients: string;
   files?: (string | number)[] | null;
+  sender_email?: string | null;
+  receiver_email?: string | null;
 }
 
 export interface Faq {
@@ -269,6 +271,33 @@ export function assetUrl(
   // Token allows access to private files if needed
   url.searchParams.set("access_token", DIRECTUS_TOKEN);
   return url.toString();
+}
+
+/**
+ * Normalize a Directus M2M files relation into a flat array of file UUIDs.
+ * Accepts: string/number IDs, junction objects (`{ directus_files_id: ... }`),
+ * or expanded file objects (`{ id: ... }`). Filters out empty values.
+ */
+export function normalizeFileIds(
+  files: unknown
+): string[] {
+  if (!Array.isArray(files)) return [];
+  return files
+    .map((f) => {
+      if (f == null) return "";
+      if (typeof f === "string" || typeof f === "number") return String(f);
+      if (typeof f === "object") {
+        const obj = f as Record<string, unknown>;
+        const dfid = obj.directus_files_id;
+        if (dfid && typeof dfid === "object") {
+          return String((dfid as { id?: unknown }).id ?? "");
+        }
+        if (dfid != null) return String(dfid);
+        if (obj.id != null) return String(obj.id);
+      }
+      return "";
+    })
+    .filter(Boolean);
 }
 
 /* -------------------------------------------------------------------------- */

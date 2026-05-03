@@ -50,7 +50,7 @@ const manageItems = [
   { title: "المستخدمون", url: "/dashboard/users", icon: Users },
   { title: "الرسائل الواردة", url: "/dashboard/messages", icon: Mail },
   { title: "الشروط والسياسة", url: "/dashboard/terms", icon: ShieldCheck },
-  { title: "الإعدادات", url: "/dashboard/settings", icon: Settings },
+  // { title: "الإعدادات", url: "/dashboard/settings", icon: Settings },
   { title: "الملف الشخصي", url: "/dashboard/profile", icon: UserCircle },
 ];
 

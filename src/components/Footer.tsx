@@ -28,7 +28,7 @@ const Footer = () => {
                 { label: "الرئيسية", path: "/" },
                 { label: "من نحن", path: "/about" },
                 { label: "خدماتنا", path: "/services" },
-                { label: "المدونة", path: "/blog" },
+                { label: "المنشورات", path: "/blog" },
                 { label: "تواصل معنا", path: "/contact" },
                 { label: "سياسة الخصوصية", path: "/privacy" },
                 { label: "الشروط والأحكام", path: "/terms" },
@@ -50,11 +50,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <Phone className="w-4 h-4 shrink-0" />
-                <span dir="ltr">+966 50 000 0000</span>
+                <span dir="ltr">0555518556</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <Mail className="w-4 h-4 shrink-0" />
-                <span>info@almajnouni.com</span>
+                <span>support@lawkhalid.com</span>
               </div>
             </div>
           </div>

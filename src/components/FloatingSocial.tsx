@@ -4,8 +4,8 @@ import { useToast } from "./ui/use-toast";
 import { useSocialLinks } from "@/hooks/useDirectus";
 import { socialIconSvg } from "@/lib/socialIcons";
 
-const PHONE = "+966500000000";
-const PHONE_DISPLAY = "+966 50 000 0000";
+const PHONE = "0555518556";
+const PHONE_DISPLAY = "0555518556";
 
 const FloatingSocial = () => {
   const [open, setOpen] = useState(false);
@@ -16,13 +16,13 @@ const FloatingSocial = () => {
     .map((l) => ({ label: l.name, href: l.url, svg: <span className="w-4 h-4 block">{socialIconSvg(l.icon)}</span> }));
 
   const handleCallWithToast = () => {
-    navigator.clipboard.writeText("01129629406");
+    navigator.clipboard.writeText(PHONE);
     toast({
       title: "تم النسخ",
       description: "تم نسخ رقم الهاتف بنجاح",
       duration: 2000,
     });
-    window.location.href = "tel:+201129629406";
+    window.location.href = `tel:${PHONE}`;
   };
 
   const ITEM_SIZE = 40;

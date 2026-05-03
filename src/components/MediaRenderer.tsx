@@ -15,7 +15,8 @@ const guessKindFromUrl = (url: string): "image" | "video" | "audio" | "pdf" | "o
   if (/\.(mp3|wav|ogg|m4a|aac|flac)$/.test(lower)) return "audio";
   if (/\.pdf$/.test(lower)) return "pdf";
   if (/\.(jpe?g|png|gif|webp|avif|svg)$/.test(lower)) return "image";
-  return "other";
+  // Directus assets use UUIDs without extensions — default to image preview.
+  return "image";
 };
 
 /**
@@ -24,7 +25,17 @@ const guessKindFromUrl = (url: string): "image" | "video" | "audio" | "pdf" | "o
  */
 const MediaRenderer = ({ fileId, alt, className, type }: MediaRendererProps) => {
   if (!fileId) return null;
-  const id = String(fileId);
+  // Defensively normalize: accept raw IDs, junction objects, or expanded files.
+  let id: string;
+  if (typeof fileId === "object") {
+    const obj = fileId as Record<string, unknown>;
+    const dfid = obj.directus_files_id;
+    if (dfid && typeof dfid === "object") id = String((dfid as { id?: unknown }).id ?? "");
+    else id = String(dfid ?? obj.id ?? "");
+  } else {
+    id = String(fileId);
+  }
+  if (!id || id === "[object Object]") return null;
   // Use the raw asset URL — Directus serves the original mime type.
   const rawUrl = `${DIRECTUS_URL}/assets/${id}`;
   const imgUrl = assetUrl(id, { width: 1200, fit: "cover" });

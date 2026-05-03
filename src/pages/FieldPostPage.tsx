@@ -80,7 +80,7 @@ const FieldPostPage = () => {
               viewport={{ once: true }}
               className="rounded-lg overflow-hidden shadow-lg"
             >
-              <img src={img} alt={field.name} className="w-full h-96 object-cover" />
+              <img src={img} alt={field.name} className="w-full h-96 object-fill" />
             </motion.div>
           </div>
         </section>
@@ -142,7 +142,7 @@ const FieldPostPage = () => {
                               src={rImg}
                               alt={related.name}
                               loading="lazy"
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full gradient-teal" />

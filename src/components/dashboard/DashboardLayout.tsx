@@ -32,10 +32,10 @@ const DashboardLayout = ({ children, title, description, actions }: Props) => {
           <header className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 gap-4 sticky top-0 z-30">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <SidebarTrigger className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors shadow-sm" />
-              <div className="relative max-w-sm w-full hidden md:block">
+              {/* <div className="relative max-w-sm w-full hidden md:block">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="بحث..." className="pr-9 h-9 bg-background/60" />
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center gap-2">

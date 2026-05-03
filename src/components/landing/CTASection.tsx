@@ -19,7 +19,7 @@ const CTASection = () => {
               اتصل بنا الآن
             </Button>
           </Link>
-          <a href="https://wa.me/966500000000" target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/0555518556" target="_blank" rel="noopener noreferrer">
             <Button size="lg"  className="bg-accent/80 text-accent-foreground hover:bg-accent/70 gap-2 text-base px-8">
               <MessageCircle className="w-5 h-5" />
               واتساب

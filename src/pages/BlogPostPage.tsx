@@ -14,7 +14,7 @@ import SEO from "@/components/SEO";
 import { articleLd, breadcrumbsLd } from "@/lib/seo";
 import { useBlogBySlug, useRelatedBlogs, useIncrementBlogViews } from "@/hooks/useDirectus";
 import { useAuth } from "@/hooks/useAuth";
-import { assetUrl } from "@/lib/directus";
+import { assetUrl, normalizeFileIds } from "@/lib/directus";
 import MediaRenderer from "@/components/MediaRenderer";
 import { useEffect } from "react";
 
@@ -47,7 +47,8 @@ const BlogPostPage = () => {
 
   if (!post) return <Navigate to="/blog" replace />;
 
-  const cover = post.files?.[0] ? assetUrl(String(post.files[0]), { width: 1600 }) : undefined;
+  const fileIds = normalizeFileIds(post.files);
+  const cover = fileIds[0] ? assetUrl(fileIds[0], { width: 1600 }) : undefined;
 
   return (
     <Layout>
@@ -94,17 +95,19 @@ const BlogPostPage = () => {
         </div>
       </section>
 
-      {(post.files?.length ?? 0) > 0 && (
+      {fileIds.length > 0 && (
         <section className="py-12 bg-background">
           <div className="section-container">
             <Carousel opts={{ loop: true, direction: "rtl" }} className="max-w-5xl mx-auto">
               <CarouselContent>
-                {(post.files ?? []).slice(0, 6).map((fileId, i) => {
-                  const fileUrl = assetUrl(String(fileId));
-                  const fileExt = String(fileId).split('.').pop()?.toLowerCase() || '';
+                {fileIds.slice(0, 6).map((fileId, i) => {
+                  const fileUrl = assetUrl(fileId);
+                  const fileExt = fileId.split('.').pop()?.toLowerCase() || '';
                   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
                   const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(fileExt);
                   const isAudio = ['mp3', 'wav', 'ogg', 'm4a'].includes(fileExt);
+                  // Default to image when extension can't be inferred from a UUID
+                  const treatAsImage = isImage || (!isVideo && !isAudio);
 
                   return (
                     <CarouselItem key={i} className="md:basis-2/3 lg:basis-1/2">
@@ -114,7 +117,7 @@ const BlogPostPage = () => {
                         viewport={{ once: true }}
                         className="modern-card overflow-hidden"
                       >
-                        {isImage && (
+                        {treatAsImage && (
                           <img
                             src={fileUrl}
                             alt={`${post.name} ${i + 1}`}
@@ -145,7 +148,7 @@ const BlogPostPage = () => {
                             </div>
                           </div>
                         )}
-                        {!isImage && !isVideo && !isAudio && (
+                        {!treatAsImage && !isVideo && !isAudio && (
                           <div className="bg-muted rounded-2xl p-8 aspect-[16/10] flex items-center justify-center flex-col gap-4">
                             <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -248,7 +251,8 @@ const BlogPostPage = () => {
             <Carousel opts={{ align: "start", direction: "rtl" }}>
               <CarouselContent>
                 {related.map((p) => {
-                  const rCover = p.files?.[0] ? assetUrl(String(p.files[0]), { width: 600 }) : undefined;
+                  const rIds = normalizeFileIds(p.files);
+                  const rCover = rIds[0] ? assetUrl(rIds[0], { width: 600 }) : undefined;
                   return (
                     <CarouselItem key={p.id} className="md:basis-1/2 lg:basis-1/3">
                       <Link to={`/blog/${p.slug || p.id}`} className="glass-card rounded-xl overflow-hidden block group hover:shadow-xl transition-all h-full">

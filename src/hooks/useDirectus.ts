@@ -68,7 +68,11 @@ export function useBlogs() {
     queryKey: ["blogs"],
     queryFn: async () =>
       (await directus.request(
-        readItems("blogs", { sort: ["-id"], limit: -1 })
+        readItems("blogs", {
+          sort: ["-id"],
+          fields: ["*", "files.id", "files.directus_files_id"],
+          limit: -1,
+        } as never)
       )) as Blog[],
   });
 }
@@ -477,12 +481,16 @@ export function useAbout() {
   return useQuery({
     queryKey: ["about"],
     queryFn: async () => {
+      // Expand the M2M `images` junction to retrieve the actual file IDs.
+      const query = {
+        fields: ["*", "images.id", "images.directus_files_id"],
+      } as never;
       try {
-        return (await directus.request(readSingleton("about"))) as About;
+        return (await directus.request(readSingleton("about", query))) as About;
       } catch (e) {
         // If the singleton isn't configured, fall back to first item
         const list = (await directus.request(
-          readItems("about" as never, { limit: 1 } as never)
+          readItems("about" as never, { limit: 1, ...(query as object) } as never)
         )) as About[];
         return (list?.[0] ?? null) as About | null;
       }
@@ -694,15 +702,28 @@ export function useBlogsList(params?: PublicListParams) {
 
   return useQuery({
     queryKey: ["blogs-list", limit, offset, params?.category ?? null, params?.search ?? null],
-    queryFn: async () =>
-      (await directus.request(
+    queryFn: async () => {
+      const result = (await directus.request(
         readItems("blogs", {
           filter,
+          fields: ["*", "files.*", "files.directus_files_id.*"],
           sort: ["-date_created", "-id"],
           limit,
           offset,
-        })
-      )) as Blog[],
+        } as never)
+      )) as Blog[];
+      
+      console.log("📚 Blog list fetched:", {
+        count: result.length,
+        sample: result.slice(0, 1).map(b => ({
+          id: b.id,
+          name: b.name,
+          files: b.files,
+        })),
+      });
+      
+      return result;
+    },
   });
 }
 
@@ -735,8 +756,9 @@ export function useBlogBySlug(slug?: string) {
       const items = (await directus.request(
         readItems("blogs", {
           filter: { _and: [{ slug: { _eq: slug } }, { status: { _eq: "published" } }] },
+          fields: ["*", "files.id", "files.directus_files_id"],
           limit: 1,
-        })
+        } as never)
       )) as Blog[];
       return items[0] ?? null;
     },
@@ -751,9 +773,10 @@ export function useRelatedBlogs(currentId?: number, limit = 5) {
       (await directus.request(
         readItems("blogs", {
           filter: { _and: [{ status: { _eq: "published" } }, { id: { _neq: currentId } }] },
+          fields: ["*", "files.id", "files.directus_files_id"],
           sort: ["-date_created", "-id"],
           limit,
-        })
+        } as never)
       )) as Blog[],
   });
 }

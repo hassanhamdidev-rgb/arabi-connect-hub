@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { Calendar, ArrowLeft, Loader2, ChevronDown, AlertCircle, RefreshCw } from "lucide-react";
+import { Calendar, ArrowLeft, Loader2, ChevronDown, AlertCircle, RefreshCw, Image as ImageIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { breadcrumbsLd, SITE_URL } from "@/lib/seo";
 import { useBlogsList, useBlogsCount, useIncrementBlogViews } from "@/hooks/useDirectus";
 import { useAuth } from "@/hooks/useAuth";
 import MediaRenderer from "@/components/MediaRenderer";
+import { normalizeFileIds, assetUrl } from "@/lib/directus";
 import type { Blog } from "@/lib/directus";
 
 const PAGE_SIZE = 6;
@@ -34,6 +35,7 @@ const formatDate = (iso?: string) =>
 const BlogPage = () => {
   const [page, setPage] = useState(1);
   const [accumulated, setAccumulated] = useState<Blog[]>([]);
+  const [imageErrors, setImageErrors] = useState<Set<string | number>>(new Set());
 
   const { data: pageData, isLoading, isFetching, error, isError, refetch } = useBlogsList({
     limit: PAGE_SIZE,
@@ -57,6 +59,10 @@ const BlogPage = () => {
 
   const handleBlogClick = (postId: number) => {
     if (isAuthenticated) incrementViews(postId);
+  };
+
+  const handleImageError = (postId: string | number) => {
+    setImageErrors((prev) => new Set([...prev, postId]));
   };
 
   return (
@@ -118,7 +124,15 @@ const BlogPage = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {accumulated.map((post, i) => {
-                  const firstFile = post.files?.[0];
+                  const firstFile = normalizeFileIds(post.files)[0];
+                  const hasImageError = imageErrors.has(post.id);
+                  console.log(`📰 Blog post #${post.id}:`, {
+                    name: post.name,
+                    files: post.files,
+                    normalizedFileIds: normalizeFileIds(post.files),
+                    firstFile: firstFile,
+                    hasImageError,
+                  });
                   return (
                     <motion.div
                       key={post.id}
@@ -132,12 +146,19 @@ const BlogPage = () => {
                         className="modern-card block group h-full"
                         onClick={() => handleBlogClick(post.id)}
                       >
-                        <div className="h-48 overflow-hidden card-sheen">
-                          {firstFile ? (
-                            <MediaRenderer fileId={firstFile} alt={post.name} className="h-full" />
+                        <div className="h-48 overflow-hidden card-sheen bg-muted flex items-center justify-center">
+                          {firstFile && !hasImageError ? (
+                            <img
+                              src={assetUrl(firstFile, { width: 600, fit: "cover" })}
+                              alt={post.name}
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={() => handleImageError(post.id)}
+                              loading="lazy"
+                            />
                           ) : (
-                            <div className="h-full gradient-teal flex items-center justify-center">
-                              <span className="text-primary-foreground/20 font-heading text-7xl font-bold">{post.id}</span>
+                            <div className="h-full w-full gradient-teal flex flex-col items-center justify-center gap-3">
+                              <ImageIcon className="w-12 h-12 text-primary-foreground/40" />
+                              <span className="text-primary-foreground/20 font-heading text-5xl font-bold">{post.id}</span>
                             </div>
                           )}
                         </div>
