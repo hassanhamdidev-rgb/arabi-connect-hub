@@ -77,9 +77,15 @@ const ServicesAdminPage = () => {
       image: editing?.image ?? "",
     };
     try {
+      if (imageFile) {
+        const [uploadedId] = await uploadFiles([imageFile]);
+        if (uploadedId) data.image = uploadedId;
+      }
       await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
       toast.success(editing ? "تم التحديث" : "تمت الإضافة");
       setOpen(false);
+      setImageFile(null);
+      setImagePreview(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
@@ -90,7 +96,7 @@ const ServicesAdminPage = () => {
       title="إدارة الخدمات"
       description={`${services.length} خدمة`}
       actions={
-        <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+        <Button onClick={() => openDialog(null)} className="gap-2">
           <Plus className="h-4 w-4" /> خدمة جديدة
         </Button>
       }
