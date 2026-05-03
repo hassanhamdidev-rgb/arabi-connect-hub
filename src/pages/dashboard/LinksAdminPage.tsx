@@ -129,7 +129,14 @@ const LinksAdminPage = () => {
                   <TableRow key={link.id}>
                     <TableCell className="font-medium">{link.name}</TableCell>
                     <TableCell className="max-w-xs truncate">{link.url}</TableCell>
-                    <TableCell>{link.icon}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-5 w-5 inline-flex items-center justify-center text-primary">
+                          {socialIconSvg(link.icon)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{link.icon}</span>
+                      </span>
+                    </TableCell>
                     <TableCell className="text-center">
                       <Badge variant={link.status === "published" ? "default" : "secondary"}>
                         {link.status === "published" ? "منشور" : "مسودة"}
