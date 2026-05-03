@@ -20,6 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2, Search, Loader2, ExternalLink } from "lucide-react";
 import type { SocialLink } from "@/hooks/useDirectus";
+import { SOCIAL_ICON_OPTIONS } from "@/lib/fallbackData";
+import { socialIconSvg } from "@/lib/socialIcons";
 
 const LinksAdminPage = () => {
   const { data: links = [], isLoading } = useSocialLinks();
