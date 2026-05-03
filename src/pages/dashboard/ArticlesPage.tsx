@@ -16,13 +16,7 @@ import { READING_TIME_OPTIONS, STATUS_OPTIONS } from "@/lib/fallbackData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-const READING_TIME_OPTIONS = [
-  { value: 5, labelAr: "5 دقائق", labelEn: "5 min" },
-  { value: 10, labelAr: "10 دقائق", labelEn: "10 min" },
-  { value: 15, labelAr: "15 دقيقة", labelEn: "15 min" },
-  { value: 20, labelAr: "20 دقيقة", labelEn: "20 min" },
-  { value: 30, labelAr: "30 دقيقة", labelEn: "30 min" },
-];
+
 
 const isUuid = (value?: string | null) =>
   Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
