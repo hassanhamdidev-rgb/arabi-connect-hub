@@ -393,18 +393,50 @@ const ArticlesPage = () => {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 المرفقات
               </h3>
+              {editing && normalizeFileIds(editing.files).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">الملفات الحالية</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {normalizeFileIds(editing.files).map((fid) => (
+                      <div key={fid} className="aspect-square rounded-md border border-border bg-muted overflow-hidden">
+                        <img src={assetUrl(fid, { width: 200, height: 200, fit: "cover" })} alt="" className="w-full h-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="files">ملفات المقال (حد أقصى 4، كل ملف 5MB)</Label>
+                <Label htmlFor="files">{editing ? "استبدال الملفات" : "ملفات المقال"} (حد أقصى 4، كل ملف 5MB)</Label>
+                <Label htmlFor="files" className="inline-flex cursor-pointer items-center gap-2 h-11 px-4 rounded-md border border-input bg-background hover:bg-muted/40 text-sm w-full">
+                  <Upload className="h-4 w-4" />
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} ملفات جديدة` : "اختر ملفات (صور/PDF)"}
+                </Label>
                 <Input
                   id="files"
                   name="files"
                   type="file"
                   multiple
+                  accept="image/*,application/pdf"
                   onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))}
-                  className="h-11 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground file:text-xs"
+                  className="hidden"
                 />
                 {selectedFiles.length > 0 && (
-                  <p className="text-xs text-muted-foreground">تم اختيار {selectedFiles.length} ملف</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                    {selectedFiles.map((file, i) => (
+                      <div key={i} className="relative aspect-square rounded-md border border-dashed border-primary bg-muted overflow-hidden">
+                        {file.type.startsWith("image/") ? (
+                          <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs p-2 text-center text-muted-foreground">{file.name}</div>
+                        )}
+                        <button type="button" onClick={() => setSelectedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute top-1 left-1 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </section>
