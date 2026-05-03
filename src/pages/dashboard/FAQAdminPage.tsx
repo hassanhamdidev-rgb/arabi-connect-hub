@@ -7,9 +7,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, GripVertical, Loader2, Search } from "lucide-react";
 import { useFaqsPaginated, useSaveFaq, useDeleteFaq } from "@/hooks/useDirectus";
 import { PaginationControls } from "@/components/dashboard/PaginationControls";
+import { FAQ_CATEGORY_OPTIONS, ICON_OPTIONS, getIconByName } from "@/lib/fallbackData";
 import type { Faq } from "@/lib/directus";
 import { toast } from "sonner";
 
