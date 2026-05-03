@@ -8,9 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Eye, Loader2, LayoutGrid, Table2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Edit, Trash2, Eye, Loader2, LayoutGrid, Table2, Upload, ImageIcon, X } from "lucide-react";
 import { useBlogs, useSaveBlog, useDeleteBlog, useCategories } from "@/hooks/useDirectus";
-import { uploadFiles, type Blog } from "@/lib/directus";
+import { uploadFiles, assetUrl, normalizeFileIds, type Blog } from "@/lib/directus";
+import { READING_TIME_OPTIONS, STATUS_OPTIONS } from "@/lib/fallbackData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
