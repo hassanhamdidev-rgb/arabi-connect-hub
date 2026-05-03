@@ -91,14 +91,7 @@ const RATE_LIMIT_MINUTES = 30;
 const RATE_LIMIT_KEY = "last_contact_submission";
 
 // ========== DEFAULT CATEGORIES (FALLBACK) ==========
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 1, name: "استشارة قانونية" },
-  { id: 2, name: "قضايا تجارية" },
-  { id: 3, name: "قضايا عمالية" },
-  { id: 4, name: "أحوال شخصية" },
-  { id: 5, name: "تحكيم" },
-  { id: 6, name: "استفسار عام" },
-];
+import { FALLBACK_CONTACT_CATEGORIES as DEFAULT_CATEGORIES } from "@/lib/fallbackData";
 
 // ========== CONTACT PAGE COMPONENT ==========
 const ContactPage = () => {
