@@ -27,6 +27,15 @@ const ServicesAdminPage = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Service | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const openDialog = (svc: Service | null) => {
+    setEditing(svc);
+    setImageFile(null);
+    setImagePreview(svc?.image ? assetUrl(svc.image, { width: 400, height: 300, fit: "cover" }) ?? null : null);
+    setOpen(true);
+  };
 
   const toggle = async (s: Service) => {
     try {
