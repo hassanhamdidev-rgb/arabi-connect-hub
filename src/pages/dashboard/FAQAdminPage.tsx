@@ -112,10 +112,15 @@ const FAQAdminPage = () => {
         <>
           <Card className="p-2">
             <Accordion type="single" collapsible className="w-full">
-              {items.map((item) => (
+              {items.map((item) => {
+                const ItemIcon = getIconByName(item.icon);
+                return (
                 <AccordionItem key={item.id} value={String(item.id)} className="border-border">
                   <div className="flex items-center gap-2 pl-4">
                     <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <ItemIcon className="h-4 w-4" />
+                    </span>
                     <AccordionTrigger className="flex-1 text-right hover:no-underline">
                       <span className="font-medium">{item.question}</span>
                     </AccordionTrigger>
@@ -133,7 +138,8 @@ const FAQAdminPage = () => {
                     {item.answer}
                   </AccordionContent>
                 </AccordionItem>
-              ))}
+                );
+              })}
             </Accordion>
           </Card>
 
