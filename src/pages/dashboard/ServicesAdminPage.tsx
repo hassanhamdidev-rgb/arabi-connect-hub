@@ -199,11 +199,30 @@ const ServicesAdminPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="icon">الأيقونة</Label>
-                  <Input id="icon" name="icon" defaultValue={editing?.icon ?? "Briefcase"} className="h-11" />
+                  <Select name="icon" defaultValue={editing?.icon ?? "Briefcase"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر أيقونة" /></SelectTrigger>
+                    <SelectContent>
+                      {ICON_OPTIONS.map((o) => {
+                        const Ic = o.Icon;
+                        return (
+                          <SelectItem key={o.value} value={o.value}>
+                            <span className="flex items-center gap-2"><Ic className="h-4 w-4" />{o.labelAr}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">النوع</Label>
-                  <Input id="type" name="type" defaultValue={editing?.type ?? "general"} className="h-11" />
+                  <Select name="type" defaultValue={editing?.type ?? "general"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_TYPE_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">السعر</Label>
@@ -211,8 +230,44 @@ const ServicesAdminPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">المدة</Label>
-                  <Input id="duration" name="duration" defaultValue={editing?.duration} className="h-11" placeholder="مثلاً: ساعة" />
+                  <Select name="duration" defaultValue={editing?.duration || "ساعة"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر المدة" /></SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_DURATION_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+            </section>
+
+            <section className="space-y-3 pt-4 border-t border-border">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                صورة الخدمة
+              </h3>
+              <div className="flex items-start gap-4">
+                <div className="h-28 w-40 rounded-md border border-dashed border-border bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <Label className="inline-flex cursor-pointer items-center gap-2 h-11 px-4 rounded-md border border-input bg-background hover:bg-muted/40 text-sm">
+                  <Upload className="h-4 w-4" />
+                  {imageFile ? imageFile.name : "اختر صورة"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setImageFile(f);
+                      setImagePreview(f ? URL.createObjectURL(f) : (editing?.image ? assetUrl(editing.image, { width: 400, height: 300, fit: "cover" }) ?? null : null));
+                    }}
+                  />
+                </Label>
               </div>
             </section>
 
