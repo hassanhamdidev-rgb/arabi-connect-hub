@@ -234,8 +234,15 @@ const ArticlesPage = () => {
               <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
             </Card>
           )}
-          {!isLoading && filtered.map((a) => (
+          {!isLoading && filtered.map((a) => {
+            const cover = normalizeFileIds(a.files)[0];
+            return (
             <Card key={a.id} className="p-4">
+              {cover && (
+                <div className="aspect-[16/9] -m-4 mb-3 overflow-hidden bg-muted rounded-t-md">
+                  <img src={assetUrl(cover, { width: 600, height: 340, fit: "cover" })} alt={a.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <h3 className="font-semibold line-clamp-2">{a.name}</h3>
                 <Badge variant={a.status === "published" ? "default" : "outline"} className="shrink-0">
