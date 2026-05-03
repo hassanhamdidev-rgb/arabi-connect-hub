@@ -8,9 +8,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Briefcase, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Edit, Trash2, Briefcase, Loader2, Upload, ImageIcon } from "lucide-react";
 import { useServices, useSaveService, useDeleteService } from "@/hooks/useDirectus";
-import type { Service } from "@/lib/directus";
+import { uploadFiles, assetUrl, type Service } from "@/lib/directus";
+import {
+  ICON_OPTIONS,
+  SERVICE_TYPE_OPTIONS,
+  SERVICE_DURATION_OPTIONS,
+  getIconByName,
+} from "@/lib/fallbackData";
 import { toast } from "sonner";
 
 const ServicesAdminPage = () => {
