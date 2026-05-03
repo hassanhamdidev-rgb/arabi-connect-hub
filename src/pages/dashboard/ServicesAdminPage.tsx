@@ -8,9 +8,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Briefcase, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Edit, Trash2, Briefcase, Loader2, Upload, ImageIcon } from "lucide-react";
 import { useServices, useSaveService, useDeleteService } from "@/hooks/useDirectus";
-import type { Service } from "@/lib/directus";
+import { uploadFiles, assetUrl, type Service } from "@/lib/directus";
+import {
+  ICON_OPTIONS,
+  SERVICE_TYPE_OPTIONS,
+  SERVICE_DURATION_OPTIONS,
+  getIconByName,
+} from "@/lib/fallbackData";
 import { toast } from "sonner";
 
 const ServicesAdminPage = () => {
@@ -20,6 +27,15 @@ const ServicesAdminPage = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Service | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const openDialog = (svc: Service | null) => {
+    setEditing(svc);
+    setImageFile(null);
+    setImagePreview(svc?.image ? assetUrl(svc.image, { width: 400, height: 300, fit: "cover" }) ?? null : null);
+    setOpen(true);
+  };
 
   const toggle = async (s: Service) => {
     try {
@@ -61,9 +77,15 @@ const ServicesAdminPage = () => {
       image: editing?.image ?? "",
     };
     try {
+      if (imageFile) {
+        const [uploadedId] = await uploadFiles([imageFile]);
+        if (uploadedId) data.image = uploadedId;
+      }
       await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
       toast.success(editing ? "تم التحديث" : "تمت الإضافة");
       setOpen(false);
+      setImageFile(null);
+      setImagePreview(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
@@ -74,7 +96,7 @@ const ServicesAdminPage = () => {
       title="إدارة الخدمات"
       description={`${services.length} خدمة`}
       actions={
-        <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+        <Button onClick={() => openDialog(null)} className="gap-2">
           <Plus className="h-4 w-4" /> خدمة جديدة
         </Button>
       }
@@ -90,9 +112,14 @@ const ServicesAdminPage = () => {
           const active = s.status === "active";
           return (
             <Card key={s.id} className={!active ? "opacity-60" : ""}>
+              {s.image && (
+                <div className="aspect-[16/9] overflow-hidden bg-muted">
+                  <img src={assetUrl(s.image, { width: 600, height: 340, fit: "cover" })} alt={s.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
                 <div className="h-11 w-11 rounded-lg gradient-teal flex items-center justify-center">
-                  <Briefcase className="h-5 w-5 text-primary-foreground" />
+                  {(() => { const Ic = getIconByName(s.icon); return <Ic className="h-5 w-5 text-primary-foreground" />; })()}
                 </div>
                 <Badge variant={active ? "default" : "outline"}>
                   {active ? "مفعّلة" : "موقوفة"}
@@ -107,7 +134,7 @@ const ServicesAdminPage = () => {
                     <Label className="text-xs text-muted-foreground">عرض في الموقع</Label>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
+                    <Button size="icon" variant="ghost" onClick={() => openDialog(s)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
@@ -172,11 +199,30 @@ const ServicesAdminPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="icon">الأيقونة</Label>
-                  <Input id="icon" name="icon" defaultValue={editing?.icon ?? "Briefcase"} className="h-11" />
+                  <Select name="icon" defaultValue={editing?.icon ?? "Briefcase"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر أيقونة" /></SelectTrigger>
+                    <SelectContent>
+                      {ICON_OPTIONS.map((o) => {
+                        const Ic = o.Icon;
+                        return (
+                          <SelectItem key={o.value} value={o.value}>
+                            <span className="flex items-center gap-2"><Ic className="h-4 w-4" />{o.labelAr}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">النوع</Label>
-                  <Input id="type" name="type" defaultValue={editing?.type ?? "general"} className="h-11" />
+                  <Select name="type" defaultValue={editing?.type ?? "general"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_TYPE_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">السعر</Label>
@@ -184,8 +230,44 @@ const ServicesAdminPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">المدة</Label>
-                  <Input id="duration" name="duration" defaultValue={editing?.duration} className="h-11" placeholder="مثلاً: ساعة" />
+                  <Select name="duration" defaultValue={editing?.duration || "ساعة"}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر المدة" /></SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_DURATION_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+            </section>
+
+            <section className="space-y-3 pt-4 border-t border-border">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                صورة الخدمة
+              </h3>
+              <div className="flex items-start gap-4">
+                <div className="h-28 w-40 rounded-md border border-dashed border-border bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                <Label className="inline-flex cursor-pointer items-center gap-2 h-11 px-4 rounded-md border border-input bg-background hover:bg-muted/40 text-sm">
+                  <Upload className="h-4 w-4" />
+                  {imageFile ? imageFile.name : "اختر صورة"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setImageFile(f);
+                      setImagePreview(f ? URL.createObjectURL(f) : (editing?.image ? assetUrl(editing.image, { width: 400, height: 300, fit: "cover" }) ?? null : null));
+                    }}
+                  />
+                </Label>
               </div>
             </section>
 

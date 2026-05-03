@@ -8,19 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Eye, Loader2, LayoutGrid, Table2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Edit, Trash2, Eye, Loader2, LayoutGrid, Table2, Upload, ImageIcon, X } from "lucide-react";
 import { useBlogs, useSaveBlog, useDeleteBlog, useCategories } from "@/hooks/useDirectus";
-import { uploadFiles, type Blog } from "@/lib/directus";
+import { uploadFiles, assetUrl, normalizeFileIds, type Blog } from "@/lib/directus";
+import { READING_TIME_OPTIONS, STATUS_OPTIONS } from "@/lib/fallbackData";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-const READING_TIME_OPTIONS = [
-  { value: 5, labelAr: "5 دقائق", labelEn: "5 min" },
-  { value: 10, labelAr: "10 دقائق", labelEn: "10 min" },
-  { value: 15, labelAr: "15 دقيقة", labelEn: "15 min" },
-  { value: 20, labelAr: "20 دقيقة", labelEn: "20 min" },
-  { value: 30, labelAr: "30 دقيقة", labelEn: "30 min" },
-];
+
 
 const isUuid = (value?: string | null) =>
   Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
@@ -238,8 +234,15 @@ const ArticlesPage = () => {
               <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
             </Card>
           )}
-          {!isLoading && filtered.map((a) => (
+          {!isLoading && filtered.map((a) => {
+            const cover = normalizeFileIds(a.files)[0];
+            return (
             <Card key={a.id} className="p-4">
+              {cover && (
+                <div className="aspect-[16/9] -m-4 mb-3 overflow-hidden bg-muted rounded-t-md">
+                  <img src={assetUrl(cover, { width: 600, height: 340, fit: "cover" })} alt={a.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <h3 className="font-semibold line-clamp-2">{a.name}</h3>
                 <Badge variant={a.status === "published" ? "default" : "outline"} className="shrink-0">
@@ -276,7 +279,8 @@ const ArticlesPage = () => {
                 </Button>
               </div>
             </Card>
-          ))}
+            );
+          })}
           {!isLoading && filtered.length === 0 && (
             <Card className="md:col-span-2 xl:col-span-3 p-8 text-center text-muted-foreground">
               لا توجد مقالات
@@ -313,46 +317,36 @@ const ArticlesPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">التصنيف</Label>
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={editing?.category ?? ""}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    required
-                  >
-                    <option value="" disabled>اختر تصنيف المدونة</option>
-                    {blogCategories.map((item) => (
-                      <option key={item.id} value={item.name}>{item.name}</option>
-                    ))}
-                  </select>
+                  <Select name="category" defaultValue={editing?.category ?? undefined} required>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر تصنيف المدونة" /></SelectTrigger>
+                    <SelectContent>
+                      {blogCategories.map((item) => (
+                        <SelectItem key={item.id} value={item.name}>{item.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">الحالة</Label>
-                  <select
-                    id="status"
-                    name="status"
-                    defaultValue={editing?.status ?? "draft"}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="draft">مسودة</option>
-                    <option value="published">منشور</option>
-                  </select>
+                  <Select name="status" defaultValue={editing?.status ?? "draft"}>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reading_time">مدة القراءة</Label>
-                  <select
-                    id="reading_time"
-                    name="reading_time"
-                    defaultValue={editing?.reading_time ?? ""}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="">اختر مدة القراءة</option>
-                    {READING_TIME_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.labelAr} ({option.labelEn})
-                      </option>
-                    ))}
-                  </select>
+                  <Select name="reading_time" defaultValue={editing?.reading_time ? String(editing.reading_time) : undefined}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر مدة القراءة" /></SelectTrigger>
+                    <SelectContent>
+                      {READING_TIME_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={String(option.value)}>{option.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>مقال مميز</Label>
@@ -407,18 +401,50 @@ const ArticlesPage = () => {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 المرفقات
               </h3>
+              {editing && normalizeFileIds(editing.files).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">الملفات الحالية</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {normalizeFileIds(editing.files).map((fid) => (
+                      <div key={fid} className="aspect-square rounded-md border border-border bg-muted overflow-hidden">
+                        <img src={assetUrl(fid, { width: 200, height: 200, fit: "cover" })} alt="" className="w-full h-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="files">ملفات المقال (حد أقصى 4، كل ملف 5MB)</Label>
+                <Label htmlFor="files">{editing ? "استبدال الملفات" : "ملفات المقال"} (حد أقصى 4، كل ملف 5MB)</Label>
+                <Label htmlFor="files" className="inline-flex cursor-pointer items-center gap-2 h-11 px-4 rounded-md border border-input bg-background hover:bg-muted/40 text-sm w-full">
+                  <Upload className="h-4 w-4" />
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} ملفات جديدة` : "اختر ملفات (صور/PDF)"}
+                </Label>
                 <Input
                   id="files"
                   name="files"
                   type="file"
                   multiple
+                  accept="image/*,application/pdf"
                   onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))}
-                  className="h-11 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground file:text-xs"
+                  className="hidden"
                 />
                 {selectedFiles.length > 0 && (
-                  <p className="text-xs text-muted-foreground">تم اختيار {selectedFiles.length} ملف</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                    {selectedFiles.map((file, i) => (
+                      <div key={i} className="relative aspect-square rounded-md border border-dashed border-primary bg-muted overflow-hidden">
+                        {file.type.startsWith("image/") ? (
+                          <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs p-2 text-center text-muted-foreground">{file.name}</div>
+                        )}
+                        <button type="button" onClick={() => setSelectedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute top-1 left-1 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </section>

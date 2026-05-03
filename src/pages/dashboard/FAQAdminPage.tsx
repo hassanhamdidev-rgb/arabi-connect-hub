@@ -7,9 +7,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, GripVertical, Loader2, Search } from "lucide-react";
 import { useFaqsPaginated, useSaveFaq, useDeleteFaq } from "@/hooks/useDirectus";
 import { PaginationControls } from "@/components/dashboard/PaginationControls";
+import { FAQ_CATEGORY_OPTIONS, ICON_OPTIONS, getIconByName } from "@/lib/fallbackData";
 import type { Faq } from "@/lib/directus";
 import { toast } from "sonner";
 
@@ -110,10 +112,15 @@ const FAQAdminPage = () => {
         <>
           <Card className="p-2">
             <Accordion type="single" collapsible className="w-full">
-              {items.map((item) => (
+              {items.map((item) => {
+                const ItemIcon = getIconByName(item.icon);
+                return (
                 <AccordionItem key={item.id} value={String(item.id)} className="border-border">
                   <div className="flex items-center gap-2 pl-4">
                     <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <ItemIcon className="h-4 w-4" />
+                    </span>
                     <AccordionTrigger className="flex-1 text-right hover:no-underline">
                       <span className="font-medium">{item.question}</span>
                     </AccordionTrigger>
@@ -131,7 +138,8 @@ const FAQAdminPage = () => {
                     {item.answer}
                   </AccordionContent>
                 </AccordionItem>
-              ))}
+                );
+              })}
             </Accordion>
           </Card>
 
@@ -173,11 +181,35 @@ const FAQAdminPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">التصنيف</Label>
-                <Input id="category" name="category" defaultValue={editing?.category ?? "عام"} className="h-11" />
+                <Select name="category" defaultValue={editing?.category ?? "عام"}>
+                  <SelectTrigger className="h-11"><SelectValue placeholder="اختر تصنيفاً" /></SelectTrigger>
+                  <SelectContent>
+                    {FAQ_CATEGORY_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">الأيقونة</Label>
-                <Input id="icon" name="icon" defaultValue={editing?.icon ?? "HelpCircle"} className="h-11" />
+                <Select name="icon" defaultValue={editing?.icon ?? "HelpCircle"}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="اختر أيقونة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ICON_OPTIONS.map((o) => {
+                      const Icon = o.Icon;
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {o.labelAr}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter className="pt-4 border-t border-border -mx-6 px-6">

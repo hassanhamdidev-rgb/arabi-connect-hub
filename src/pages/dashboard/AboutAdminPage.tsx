@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Info, Plus, X, Upload, ImageIcon, Trash2 } from "lucide-react";
-import { uploadFiles, assetUrl } from "@/lib/directus";
+import { uploadFiles, assetUrl, normalizeFileIds } from "@/lib/directus";
 
 type AboutForm = {
   vision: string;
@@ -49,7 +49,7 @@ const AboutAdminPage = () => {
         about_office: data.about_office ?? "",
         experiences: Array.isArray(data.experiences) ? data.experiences : [],
         services: Array.isArray(data.services) ? data.services : [],
-        images: (Array.isArray(data.images) ? data.images : []).map(String),
+        images: normalizeFileIds(data.images),
       });
     }
   }, [data]);
