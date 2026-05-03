@@ -219,12 +219,23 @@ const LinksAdminPage = () => {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">الأيقونة</label>
-              <Input
-                name="icon"
-                defaultValue={editing?.icon ?? ""}
-                placeholder="facebook_square / x_twitter / whatsapp / linkedin / instagram / youtube"
-                className="h-11"
-              />
+              <Select name="icon" defaultValue={editing?.icon ?? ""}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="اختر منصة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOCIAL_ICON_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 inline-flex items-center justify-center text-primary">
+                          {socialIconSvg(o.value)}
+                        </span>
+                        {o.labelAr}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground">يُستخدم لاختيار الأيقونة المعروضة في الموقع</p>
             </div>
 
