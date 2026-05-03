@@ -49,7 +49,7 @@ const AboutAdminPage = () => {
         about_office: data.about_office ?? "",
         experiences: Array.isArray(data.experiences) ? data.experiences : [],
         services: Array.isArray(data.services) ? data.services : [],
-        images: (Array.isArray(data.images) ? data.images : []).map(String),
+        images: normalizeFileIds(data.images),
       });
     }
   }, [data]);
