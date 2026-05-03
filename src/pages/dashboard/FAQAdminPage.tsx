@@ -175,11 +175,35 @@ const FAQAdminPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">التصنيف</Label>
-                <Input id="category" name="category" defaultValue={editing?.category ?? "عام"} className="h-11" />
+                <Select name="category" defaultValue={editing?.category ?? "عام"}>
+                  <SelectTrigger className="h-11"><SelectValue placeholder="اختر تصنيفاً" /></SelectTrigger>
+                  <SelectContent>
+                    {FAQ_CATEGORY_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">الأيقونة</Label>
-                <Input id="icon" name="icon" defaultValue={editing?.icon ?? "HelpCircle"} className="h-11" />
+                <Select name="icon" defaultValue={editing?.icon ?? "HelpCircle"}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="اختر أيقونة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ICON_OPTIONS.map((o) => {
+                      const Icon = o.Icon;
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {o.labelAr}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter className="pt-4 border-t border-border -mx-6 px-6">
