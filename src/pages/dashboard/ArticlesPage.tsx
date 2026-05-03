@@ -309,46 +309,36 @@ const ArticlesPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">التصنيف</Label>
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={editing?.category ?? ""}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    required
-                  >
-                    <option value="" disabled>اختر تصنيف المدونة</option>
-                    {blogCategories.map((item) => (
-                      <option key={item.id} value={item.name}>{item.name}</option>
-                    ))}
-                  </select>
+                  <Select name="category" defaultValue={editing?.category ?? undefined} required>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر تصنيف المدونة" /></SelectTrigger>
+                    <SelectContent>
+                      {blogCategories.map((item) => (
+                        <SelectItem key={item.id} value={item.name}>{item.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">الحالة</Label>
-                  <select
-                    id="status"
-                    name="status"
-                    defaultValue={editing?.status ?? "draft"}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="draft">مسودة</option>
-                    <option value="published">منشور</option>
-                  </select>
+                  <Select name="status" defaultValue={editing?.status ?? "draft"}>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reading_time">مدة القراءة</Label>
-                  <select
-                    id="reading_time"
-                    name="reading_time"
-                    defaultValue={editing?.reading_time ?? ""}
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="">اختر مدة القراءة</option>
-                    {READING_TIME_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.labelAr} ({option.labelEn})
-                      </option>
-                    ))}
-                  </select>
+                  <Select name="reading_time" defaultValue={editing?.reading_time ? String(editing.reading_time) : undefined}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="اختر مدة القراءة" /></SelectTrigger>
+                    <SelectContent>
+                      {READING_TIME_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={String(option.value)}>{option.labelAr}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>مقال مميز</Label>
