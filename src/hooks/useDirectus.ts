@@ -284,6 +284,27 @@ export function useMarkNotification() {
   });
 }
 
+export function useDeleteNotification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) =>
+      directus.request(deleteItem("notifications", id)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+}
+
+export function useDeleteAllNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) {
+        await directus.request(deleteItem("notifications", id));
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+}
+
 /* --------------------------- Terms & policies ---------------------------- */
 export function useTerms() {
   return useQuery({

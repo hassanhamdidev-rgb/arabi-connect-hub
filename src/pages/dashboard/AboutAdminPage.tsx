@@ -99,7 +99,7 @@ const AboutAdminPage = () => {
   return (
     <DashboardLayout
       title="إدارة صفحة من نحن"
-      description="تحديث بيانات جدول about: الرؤية، الرسالة، القيم، الخبرات، الخدمات والصور"
+      description="تحديث بيانات صفحة من نحن: الرؤية، الرسالة، القيم، الخبرات، الخدمات والصور"
     >
       {isLoading ? (
         <Card className="p-8 text-center">
@@ -113,7 +113,6 @@ const AboutAdminPage = () => {
             </span>
             <div>
               <h2 className="text-lg font-semibold">معلومات المكتب</h2>
-              <p className="text-sm text-muted-foreground">جدول singleton: <code className="text-xs bg-muted px-1 rounded">about</code></p>
             </div>
           </div>
 

@@ -290,11 +290,11 @@ const ArticlesPage = () => {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogContent className="sm:max-w-2xl  max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
-            <DialogHeader>
+            <DialogHeader className="mt-5">
               <DialogTitle className="text-xl flex items-center gap-2">
-                <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                <span className="h-8 w-8  rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                   <Edit className="h-4 w-4" />
                 </span>
                 {editing ? "تعديل المقال" : "مقال جديد"}

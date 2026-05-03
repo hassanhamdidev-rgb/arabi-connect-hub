@@ -33,6 +33,8 @@ const LinksAdminPage = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SocialLink | null>(null);
   const [pendingDelete, setPendingDelete] = useState<SocialLink | null>(null);
+  const [selectedIcon, setSelectedIcon] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<"published" | "draft">("published");
 
   const filtered = links.filter(
     (l) =>
@@ -42,11 +44,15 @@ const LinksAdminPage = () => {
 
   const openNew = () => {
     setEditing(null);
+    setSelectedIcon("");
+    setSelectedStatus("published");
     setOpen(true);
   };
 
   const openEdit = (link: SocialLink) => {
     setEditing(link);
+    setSelectedIcon(link.icon ?? "");
+    setSelectedStatus(link.status ?? "published");
     setOpen(true);
   };
 
@@ -80,6 +86,8 @@ const LinksAdminPage = () => {
       await saveMut.mutateAsync(editing ? { id: editing.id, ...data } : data);
       toast({ title: editing ? "تم تحديث الرابط" : "تم إضافة الرابط بنجاح" });
       setOpen(false);
+      setSelectedIcon("");
+      setSelectedStatus("published");
     } catch (e) {
       toast({ title: "خطأ", description: e instanceof Error ? e.message : "تعذر الحفظ" });
     }
@@ -189,7 +197,7 @@ const LinksAdminPage = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
-            <DialogHeader>
+            <DialogHeader className="mt-5">
               <DialogTitle className="text-xl flex items-center gap-2">
                 <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                   <ExternalLink className="h-4 w-4" />
@@ -197,7 +205,7 @@ const LinksAdminPage = () => {
                 {editing ? "تعديل الرابط" : "رابط اجتماعي جديد"}
               </DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                البيانات تتطابق مع جدول <code className="text-xs bg-muted px-1 rounded">social_link</code>
+                أضف رابط اجتماعي جديد أو عدل رابط موجود
               </p>
             </DialogHeader>
           </div>
@@ -228,7 +236,7 @@ const LinksAdminPage = () => {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">الأيقونة</label>
-              <Select name="icon" defaultValue={editing?.icon ?? ""}>
+              <Select value={selectedIcon} onValueChange={setSelectedIcon}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="اختر منصة" />
                 </SelectTrigger>
@@ -245,13 +253,14 @@ const LinksAdminPage = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <input type="hidden" name="icon" value={selectedIcon} />
               <p className="text-xs text-muted-foreground">يُستخدم لاختيار الأيقونة المعروضة في الموقع</p>
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">الحالة</label>
-              <Select defaultValue={editing?.status ?? "published"}>
-                <SelectTrigger name="status" className="h-11">
+              <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as "published" | "draft")}>
+                <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,6 +268,7 @@ const LinksAdminPage = () => {
                   <SelectItem value="draft">مسودة</SelectItem>
                 </SelectContent>
               </Select>
+              <input type="hidden" name="status" value={selectedStatus} />
             </div>
 
             <div className="flex gap-2 justify-end pt-4 border-t border-border">

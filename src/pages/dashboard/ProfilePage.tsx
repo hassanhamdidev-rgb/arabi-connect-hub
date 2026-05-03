@@ -273,7 +273,7 @@ const ProfilePage = () => {
                   />
                 </Field>
 
-                <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 p-4">
+                {/* <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 p-4">
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <BellRing className="h-4 w-4" />
@@ -287,7 +287,7 @@ const ProfilePage = () => {
                     checked={form.email_notifications}
                     onCheckedChange={(v) => setForm({ ...form, email_notifications: v })}
                   />
-                </div>
+                </div> */}
 
                 <div className="flex justify-end pt-2">
                   <Button type="submit" disabled={updateMe.isPending} className="gap-2 min-w-32 h-11">

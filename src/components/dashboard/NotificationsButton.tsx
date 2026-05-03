@@ -1,7 +1,8 @@
-import { Bell, MessageSquare, FileText, UserPlus, Settings as SettingsIcon, CheckCheck } from "lucide-react";
+import { Bell, MessageSquare, FileText, UserPlus, Settings as SettingsIcon, CheckCheck, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useNotifications, useMarkNotification } from "@/hooks/useDirectus";
+import { useNotifications, useMarkNotification, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useDirectus";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
@@ -17,6 +18,9 @@ const iconMap: Record<string, typeof MessageSquare> = {
 const NotificationsButton = () => {
   const { data: items = [], isLoading } = useNotifications();
   const markMut = useMarkNotification();
+  const deleteMut = useDeleteNotification();
+  const deleteAllMut = useDeleteAllNotifications();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const previousUnreadCountRef = useRef(0);
 
@@ -35,9 +39,32 @@ const NotificationsButton = () => {
     items.filter((n) => !n.is_read).forEach((n) => markMut.mutate(n.id));
   };
 
+  const deleteOne = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteMut.mutate(id, {
+      onSuccess: () => {
+        toast({
+          title: "تم الحذف",
+          description: "تم حذف الإشعار بنجاح",
+        });
+      },
+    });
+  };
+
+  const deleteAll = () => {
+    deleteAllMut.mutate(items.map((n) => n.id), {
+      onSuccess: () => {
+        toast({
+          title: "تم حذف الكل",
+          description: `تم حذف ${items.length} إشعار`,
+        });
+      },
+    });
+  };
+
   const handleClick = (n: typeof items[number]) => {
     if (!n.is_read) markMut.mutate(n.id);
-    if (n.url) navigate(n.url);
+    if (n.url) navigate('/dashboard/messages');
   };
 
   return (
@@ -58,9 +85,14 @@ const NotificationsButton = () => {
             <div className="font-heading font-bold text-sm">الإشعارات</div>
             <div className="text-xs text-muted-foreground">{unread} غير مقروءة</div>
           </div>
-          <Button variant="ghost" size="sm" onClick={markAll} className="h-8 text-xs gap-1" disabled={unread === 0}>
-            <CheckCheck className="h-3.5 w-3.5" /> قراءة الكل
-          </Button>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={markAll} className="h-8 text-xs gap-1" disabled={unread === 0}>
+              <CheckCheck className="h-3.5 w-3.5" /> قراءة الكل
+            </Button>
+            <Button variant="ghost" size="sm" onClick={deleteAll} className="h-8 text-xs gap-1" disabled={items.length === 0}>
+              <Trash2 className="h-3.5 w-3.5" /> حذف الكل
+            </Button>
+          </div>
         </div>
 
         <div className="max-h-80 overflow-y-auto">
@@ -73,28 +105,40 @@ const NotificationsButton = () => {
           {top5.map((n) => {
             const Icon = iconMap[n.icon ?? "system"] ?? SettingsIcon;
             return (
-              <button
+              <div
                 key={n.id}
-                onClick={() => handleClick(n)}
                 className={cn(
-                  "w-full text-right flex items-start gap-3 p-3 border-b border-border/60 hover:bg-muted/60 transition-colors",
+                  "w-full text-right flex items-start gap-3 p-3 border-b border-border/60 hover:bg-muted/60 transition-colors group",
                   !n.is_read && "bg-accent/5"
                 )}
               >
-                <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate">{n.category}</span>
-                    {!n.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
+                <button
+                  onClick={() => handleClick(n)}
+                  className="flex-1 flex items-start gap-3 cursor-pointer"
+                >
+                  <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{n.description}</div>
-                  <div className="text-[10px] text-muted-foreground/70 mt-0.5">
-                    {n.date_created ? new Date(n.date_created).toLocaleString("ar-SA") : ""}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm truncate">{n.category}</span>
+                      {!n.is_read && <span className="h-2 w-2 rounded-full bg-accent shrink-0" />}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[200px] overflow-clip overflow-ellipsis line-clamp-1">{n.description}</div>
+                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                      {n.date_created ? new Date(n.date_created).toLocaleString("ar-SA") : ""}
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => deleteOne(n.id, e)}
+                  className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             );
           })}
         </div>

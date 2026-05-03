@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFields, useSaveField, useDeleteField } from "@/hooks/useDirectus";
+import { useFields, useSaveField, useDeleteField, useCategories } from "@/hooks/useDirectus";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -19,14 +19,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit2, Trash2, Search, Loader2, Briefcase, ImageIcon, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Loader2, Briefcase, ImageIcon, Upload, AlertCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { uploadFiles, assetUrl, type Field } from "@/lib/directus";
 
 const FieldsAdminPage = () => {
   const { data: items = [], isLoading } = useFields();
+  const { data: categories = [] } = useCategories();
   const saveMut = useSaveField();
   const delMut = useDeleteField();
   const { toast } = useToast();
+  const fieldCategories = categories.filter((item) => item.type?.toLowerCase() === "field");
 
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -34,6 +43,8 @@ const FieldsAdminPage = () => {
   const [pendingDelete, setPendingDelete] = useState<Field | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageId, setImageId] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const filtered = items.filter(
     (s) =>
@@ -198,15 +209,13 @@ const FieldsAdminPage = () => {
         <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
             <DialogHeader>
-              <DialogTitle className="text-xl flex items-center gap-2">
-                <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                  <Briefcase className="h-4 w-4" />
+              <DialogTitle className="text-xl flex items-center gap-2 mt-5">
+                <span className="h-8 w-8  rounded-lg bg-primary text-primary-foreground flex items-center justify-center ">
+                  <Briefcase className="h-4 w-4 " />
                 </span>
                 {editing ? "تعديل المجال" : "مجال جديد"}
               </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                البيانات تتطابق مع جدول <code className="text-xs bg-muted px-1 rounded">fields</code>
-              </p>
+           
             </DialogHeader>
           </div>
 
@@ -221,22 +230,54 @@ const FieldsAdminPage = () => {
                   <Input id="name" name="name" defaultValue={editing?.name ?? ""} required className="h-11" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">النوع</Label>
-                  <Input id="type" name="type" defaultValue={editing?.type ?? ""} className="h-11" />
+                  <Label htmlFor="type">فئة المجال *</Label>
+                  {categoriesError && (
+                    <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700 flex gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{categoriesError}</span>
+                    </div>
+                  )}
+                  <Select
+                    defaultValue={editing?.type ?? ""}
+                    onValueChange={(value) => {
+                      const input = document.querySelector('input[name="type"]') as HTMLInputElement;
+                      if (input) input.value = value;
+                    }}
+                    disabled={categoriesLoading}
+                  >
+                    <SelectTrigger id="type" className="h-11">
+                      <SelectValue placeholder={categoriesLoading ? "جاري التحميل..." : "اختر فئة المجال"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fieldCategories.map((item) => (
+                        <SelectItem key={`${item.id}-${item.name}`} value={item.name}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="type" defaultValue={editing?.type ?? ""} />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="status">الحالة</Label>
-                <select
-                  id="status"
-                  name="status"
+                <Select
                   defaultValue={editing?.status ?? "published"}
-                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onValueChange={(value) => {
+                    const input = document.querySelector('input[name="status"]') as HTMLInputElement;
+                    if (input) input.value = value;
+                  }}
                 >
-                  <option value="published">منشور</option>
-                  <option value="draft">مسودة</option>
-                </select>
+                  <SelectTrigger id="status" className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="published">منشور</SelectItem>
+                    <SelectItem value="draft">مسودة</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="status" defaultValue={editing?.status ?? "published"} />
               </div>
             </section>
 

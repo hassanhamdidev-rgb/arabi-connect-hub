@@ -26,14 +26,15 @@ import {
   Newspaper,
   Send,
   type LucideIcon,
+  Upload,
 } from "lucide-react";
 
 /* -------------------------- Contact / Office info ------------------------- */
 
 export const FALLBACK_CONTACT = {
-  phone: "+966 50 000 0000",
-  whatsapp: "+966 50 000 0000",
-  email: "info@khaledalmajnouni.sa",
+  phone: "0555518556",
+  whatsapp: "0555518556",
+  email: "support@lawkhalid.com",
   address: "الرياض، المملكة العربية السعودية",
   workingHours: "الأحد - الخميس: 9:00 ص - 5:00 م",
 };
@@ -45,6 +46,9 @@ export const FALLBACK_SOCIAL_LINKS = [
   { id: "li",  name: "LinkedIn",  url: "#", icon: "linkedin" },
   { id: "ig",  name: "Instagram", url: "#", icon: "instagram" },
   { id: "yt",  name: "YouTube",   url: "#", icon: "youtube" },
+  { id: "tg",  name: "Telegram",  url: "#", icon: "telegram" },
+  { id: "sc",  name: "Snapchat",  url: "#", icon: "snapchat" },
+  { id: "tt",  name: "TikTok",    url: "#", icon: "tiktok" },
 ];
 
 /* ------------------- Contact page categories (dropdown) ------------------- */
@@ -127,6 +131,12 @@ export const ICON_OPTIONS: { value: string; labelAr: string; Icon: LucideIcon }[
   { value: "MapPin",         labelAr: "موقع", Icon: MapPin },
   { value: "Globe",          labelAr: "عالم", Icon: Globe },
   { value: "Send",           labelAr: "إرسال", Icon: Send },
+  { value: "Upload",         labelAr: "رفع ملف", Icon: Upload },
+  { value: "Other",          labelAr: "أخرى", Icon: Briefcase },
+  { value: "None",           labelAr: "بدون أيقونة", Icon: null },
+
+
+  
 ];
 
 /** Social platform icons (for /dashboard/links) */
@@ -140,6 +150,9 @@ export const SOCIAL_ICON_OPTIONS = [
   { value: "telegram",        labelAr: "Telegram" },
   { value: "snapchat",        labelAr: "Snapchat" },
   { value: "tiktok",          labelAr: "TikTok" },
+  { value: "Other",            labelAr: "أخرى" },
+
+  
 ];
 
 /** Lookup helper for icon components by name */

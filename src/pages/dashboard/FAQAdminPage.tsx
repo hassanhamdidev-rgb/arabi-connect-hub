@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, GripVertical, Loader2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, GripVertical, Loader2, Search, HelpCircle } from "lucide-react";
 import { useFaqsPaginated, useSaveFaq, useDeleteFaq } from "@/hooks/useDirectus";
 import { PaginationControls } from "@/components/dashboard/PaginationControls";
 import { FAQ_CATEGORY_OPTIONS, ICON_OPTIONS, getIconByName } from "@/lib/fallbackData";
@@ -22,6 +22,8 @@ const FAQAdminPage = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faq | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("عام");
+  const [selectedIcon, setSelectedIcon] = useState("HelpCircle");
 
   const { data: items = [], isLoading } = useFaqsPaginated({ 
     limit: LIMIT, 
@@ -30,6 +32,13 @@ const FAQAdminPage = () => {
   });
   const saveMut = useSaveFaq();
   const delMut = useDeleteFaq();
+
+  const openDialog = (faq: Faq | null) => {
+    setEditing(faq);
+    setSelectedCategory(faq?.category ?? "عام");
+    setSelectedIcon(faq?.icon ?? "HelpCircle");
+    setOpen(true);
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -58,6 +67,8 @@ const FAQAdminPage = () => {
       toast.success(editing ? "تم التحديث" : "تمت الإضافة");
       setOpen(false);
       setOffset(0); // Reset to first page
+      setSelectedCategory("عام");
+      setSelectedIcon("HelpCircle");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
@@ -82,7 +93,7 @@ const FAQAdminPage = () => {
       title="إدارة الأسئلة الشائعة"
       description={`${items.length > 0 ? "تحميل..." : "0"} سؤال`}
       actions={
-        <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+        <Button onClick={() => openDialog(null)} className="gap-2">
           <Plus className="h-4 w-4" /> سؤال جديد
         </Button>
       }
@@ -125,7 +136,7 @@ const FAQAdminPage = () => {
                       <span className="font-medium">{item.question}</span>
                     </AccordionTrigger>
                     <div className="flex gap-1 shrink-0">
-                      <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setEditing(item); setOpen(true); }}>
+                      <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); openDialog(item); }}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
@@ -157,7 +168,7 @@ const FAQAdminPage = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
-            <DialogHeader>
+            <DialogHeader className="mt-5">
               <DialogTitle className="text-xl flex items-center gap-2">
                 <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                   <Edit className="h-4 w-4" />
@@ -181,7 +192,7 @@ const FAQAdminPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">التصنيف</Label>
-                <Select name="category" defaultValue={editing?.category ?? "عام"}>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="اختر تصنيفاً" /></SelectTrigger>
                   <SelectContent>
                     {FAQ_CATEGORY_OPTIONS.map((o) => (
@@ -189,16 +200,17 @@ const FAQAdminPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="category" value={selectedCategory} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">الأيقونة</Label>
-                <Select name="icon" defaultValue={editing?.icon ?? "HelpCircle"}>
+                <Select value={selectedIcon} onValueChange={setSelectedIcon}>
                   <SelectTrigger className="h-11">
                     <SelectValue placeholder="اختر أيقونة" />
                   </SelectTrigger>
                   <SelectContent>
                     {ICON_OPTIONS.map((o) => {
-                      const Icon = o.Icon;
+                      const Icon = o.Icon || HelpCircle;
                       return (
                         <SelectItem key={o.value} value={o.value}>
                           <span className="flex items-center gap-2">
@@ -210,6 +222,7 @@ const FAQAdminPage = () => {
                     })}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="icon" value={selectedIcon} />
               </div>
             </div>
             <DialogFooter className="pt-4 border-t border-border -mx-6 px-6">

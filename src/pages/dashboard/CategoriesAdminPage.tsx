@@ -6,11 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Loader2, Layers } from "lucide-react";
 import { useCategories, useSaveCategory, useDeleteCategory } from "@/hooks/useDirectus";
 import type { Category } from "@/lib/directus";
+import { Plus, Edit2, Edit , Trash2, Search, Loader2, Briefcase, ImageIcon, Upload, Layers , AlertCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 const CATEGORY_TYPES = [
@@ -19,6 +27,7 @@ const CATEGORY_TYPES = [
   { value: "faq", label: "أسئلة شائعة" },
   { value: "report", label: "تقرير" },
   { value: "contact", label: "رسالة" },
+  { value: "field", label: "مجال" },
 ];
 
 const CategoriesAdminPage = () => {
@@ -27,6 +36,9 @@ const CategoriesAdminPage = () => {
   const delMut = useDeleteCategory();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
+  const [categories, setCategories] = useState(CATEGORY_TYPES);
+  
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const handleDelete = async (id: number) => {
     if (confirm("هل أنت متأكد من حذف هذا التصنيف؟")) {
@@ -142,7 +154,7 @@ const CategoriesAdminPage = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
-            <DialogHeader>
+            <DialogHeader className="mt-5">
               <DialogTitle className="text-xl flex items-center gap-2">
                 <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                   <Layers className="h-4 w-4" />
@@ -169,7 +181,34 @@ const CategoriesAdminPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="type">النوع</Label>
-              <select
+{/* ------------------------ */}
+{categoriesError && (
+                    <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700 flex gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{categoriesError}</span>
+                    </div>
+                  )}
+   <Select
+  name="type"
+  defaultValue={editing?.type ?? "blog"}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="اختر نوع التصنيف" />
+  </SelectTrigger>
+  <SelectContent>
+    {categories.map((category) => (
+      <SelectItem
+        key={`${category.value}-${category.label}`}
+        value={category.value}
+      >
+        {category.label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+{/* ------------------------- */}
+
+              {/* <select
                 id="type"
                 name="type"
                 defaultValue={editing?.type ?? "blog"}
@@ -179,7 +218,7 @@ const CategoriesAdminPage = () => {
                 {CATEGORY_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
-              </select>
+              </select> */}
             </div>
 
             <div className="space-y-2">

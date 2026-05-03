@@ -29,11 +29,17 @@ const ServicesAdminPage = () => {
   const [pendingDelete, setPendingDelete] = useState<Service | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedIcon, setSelectedIcon] = useState("Briefcase");
+  const [selectedType, setSelectedType] = useState("general");
+  const [selectedDuration, setSelectedDuration] = useState("ساعة");
 
   const openDialog = (svc: Service | null) => {
     setEditing(svc);
     setImageFile(null);
     setImagePreview(svc?.image ? assetUrl(svc.image, { width: 400, height: 300, fit: "cover" }) ?? null : null);
+    setSelectedIcon(svc?.icon ?? "Briefcase");
+    setSelectedType(svc?.type ?? "general");
+    setSelectedDuration(svc?.duration ?? "ساعة");
     setOpen(true);
   };
 
@@ -86,6 +92,9 @@ const ServicesAdminPage = () => {
       setOpen(false);
       setImageFile(null);
       setImagePreview(null);
+      setSelectedIcon("Briefcase");
+      setSelectedType("general");
+      setSelectedDuration("ساعة");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الحفظ");
     }
@@ -119,7 +128,7 @@ const ServicesAdminPage = () => {
               )}
               <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
                 <div className="h-11 w-11 rounded-lg gradient-teal flex items-center justify-center">
-                  {(() => { const Ic = getIconByName(s.icon); return <Ic className="h-5 w-5 text-primary-foreground" />; })()}
+                  {(() => { const Ic = getIconByName(s.icon) || Briefcase; return <Ic className="h-5 w-5 text-primary-foreground" />; })()}
                 </div>
                 <Badge variant={active ? "default" : "outline"}>
                   {active ? "مفعّلة" : "موقوفة"}
@@ -156,7 +165,7 @@ const ServicesAdminPage = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-l from-primary/10 via-primary/5 to-transparent px-6 py-5 border-b border-border">
-            <DialogHeader>
+            <DialogHeader className="mt-5">
               <DialogTitle className="text-xl flex items-center gap-2">
                 <span className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                   <Briefcase className="h-4 w-4" />
@@ -199,11 +208,11 @@ const ServicesAdminPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="icon">الأيقونة</Label>
-                  <Select name="icon" defaultValue={editing?.icon ?? "Briefcase"}>
+                  <Select value={selectedIcon} onValueChange={setSelectedIcon}>
                     <SelectTrigger className="h-11"><SelectValue placeholder="اختر أيقونة" /></SelectTrigger>
                     <SelectContent>
                       {ICON_OPTIONS.map((o) => {
-                        const Ic = o.Icon;
+                        const Ic = o.Icon || Briefcase;
                         return (
                           <SelectItem key={o.value} value={o.value}>
                             <span className="flex items-center gap-2"><Ic className="h-4 w-4" />{o.labelAr}</span>
@@ -212,10 +221,11 @@ const ServicesAdminPage = () => {
                       })}
                     </SelectContent>
                   </Select>
+                  <input type="hidden" name="icon" value={selectedIcon} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">النوع</Label>
-                  <Select name="type" defaultValue={editing?.type ?? "general"}>
+                  <Select value={selectedType} onValueChange={setSelectedType}>
                     <SelectTrigger className="h-11"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
                     <SelectContent>
                       {SERVICE_TYPE_OPTIONS.map((o) => (
@@ -223,6 +233,7 @@ const ServicesAdminPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <input type="hidden" name="type" value={selectedType} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">السعر</Label>
@@ -230,7 +241,7 @@ const ServicesAdminPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">المدة</Label>
-                  <Select name="duration" defaultValue={editing?.duration || "ساعة"}>
+                  <Select value={selectedDuration} onValueChange={setSelectedDuration}>
                     <SelectTrigger className="h-11"><SelectValue placeholder="اختر المدة" /></SelectTrigger>
                     <SelectContent>
                       {SERVICE_DURATION_OPTIONS.map((o) => (
@@ -238,6 +249,7 @@ const ServicesAdminPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <input type="hidden" name="duration" value={selectedDuration} />
                 </div>
               </div>
             </section>
