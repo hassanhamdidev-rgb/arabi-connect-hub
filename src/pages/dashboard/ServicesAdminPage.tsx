@@ -112,9 +112,14 @@ const ServicesAdminPage = () => {
           const active = s.status === "active";
           return (
             <Card key={s.id} className={!active ? "opacity-60" : ""}>
+              {s.image && (
+                <div className="aspect-[16/9] overflow-hidden bg-muted">
+                  <img src={assetUrl(s.image, { width: 600, height: 340, fit: "cover" })} alt={s.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <CardHeader className="flex-row items-start justify-between space-y-0 pb-3">
                 <div className="h-11 w-11 rounded-lg gradient-teal flex items-center justify-center">
-                  <Briefcase className="h-5 w-5 text-primary-foreground" />
+                  {(() => { const Ic = getIconByName(s.icon); return <Ic className="h-5 w-5 text-primary-foreground" />; })()}
                 </div>
                 <Badge variant={active ? "default" : "outline"}>
                   {active ? "مفعّلة" : "موقوفة"}
@@ -129,7 +134,7 @@ const ServicesAdminPage = () => {
                     <Label className="text-xs text-muted-foreground">عرض في الموقع</Label>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => { setEditing(s); setOpen(true); }}>
+                    <Button size="icon" variant="ghost" onClick={() => openDialog(s)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
