@@ -279,7 +279,8 @@ const ArticlesPage = () => {
                 </Button>
               </div>
             </Card>
-          ))}
+            );
+          })}
           {!isLoading && filtered.length === 0 && (
             <Card className="md:col-span-2 xl:col-span-3 p-8 text-center text-muted-foreground">
               لا توجد مقالات
